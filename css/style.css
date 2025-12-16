@@ -1,0 +1,560 @@
+/*==================================================
+  Allgemeine Definitionen von Absatz-Tags
+*/
+body
+{
+    background-color: #ffffff;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 10pt;
+}
+p, li, ul, ol, td, th
+{
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 10pt;
+}
+h1, h2, h3, h4, h5
+{
+    font-family: Arial, Helvetica, sans-serif;
+}
+h1
+{
+    font-size: 14pt;
+    border-bottom: 1pt solid;
+}
+h2
+{
+    font-size: 13pt;
+}
+h3
+{
+    font-size: 12pt;
+}
+h4
+{
+    font-size: 11pt;
+}
+h5
+{
+    font-size: 10pt;
+}
+
+pre
+{
+    font-family: Courier New, monospace;
+    font-size: 10pt;
+}
+
+/*==================================================
+  Formate f�r das Inhaltsverzeichnis, das mit dem Skript toc_script.js erzeugt wird.
+  Das toc_script.js verwendet <li>-Tags f�r das IHV. Die Schriftart f�r
+  die <li>-Tags wurde bereits oben definiert.
+*/
+#myTOC, #toc
+{
+    cursor: hand;
+}
+.tocH1
+{
+    margin-left: 0pt;
+    font-size: 10pt;
+    font-weight: bold;
+}
+.tocH2
+{
+    margin-left: 10pt;
+    font-size: 10pt;
+}
+.tocH3
+{
+    margin-left: 20pt;
+    font-size: 9pt;
+    font-style: italic;
+}
+.tocH4
+{
+    margin-left: 15pt;
+    font-size: 10pt;
+}
+.tocH5
+{
+    margin-left: 40pt;
+}
+.tocH6
+{
+    margin-left: 50pt;
+}
+
+/*==================================================
+  Style f�r SourceCode Beispiele mit ...
+     ... nicht-proportionaler Schrift => pre.SourceCode
+     ... proportionaler Schrift       => p.SourceCode
+  Schriftart und Schriftgr��e sind bereits in den p bzw. pre Definitionen festgelegt.
+*/
+pre.SourceCode, p.pSourceCode
+{
+    margin: 8px;
+    padding: 8px;
+    background-color: #EEEEEE;
+}
+
+/* Formatdefinitionen zum Drucken */
+@media print
+{
+    .DoNotPrintNavItems
+    {
+        display: none;
+    }
+}
+
+
+/*Ueberschrift f?r Navigation*/
+p.Navigation
+{
+    font-size: 10pt;
+    font-weight: bold;
+}
+/* Tabelle f?r Navigationseintr?ge */
+table.Navigation
+{
+    background-color: #f7f7f7;
+    width: 100%;
+}
+td.Navigation
+{
+    background-color: #f7f7f7;
+    text-align: left;
+}
+td.Navigation a
+{
+    text-decoration: none;
+}
+td.Navigation a:hover
+{
+    text-decoration: underline;
+}
+
+
+
+/*==================================================
+  Style-Definitionen f�r Tipps, Tricks, Hinweise und wichtige Texte
+
+  Zuerst die Defintion von seitlichem Abstand und Hintergrund
+  f�r .tips und .important:
+*/
+p.tips, p.important, p.demo
+{
+    margin: 8px;
+    padding: 8px;
+    background-color: #eeeeee;
+}
+/* Blauer Rahmen f�r Hinweise und Tricks  */
+p.tips
+{
+    border: 3px solid #6699ff;
+}
+/* Roter Rahmen f�r wichtige Textpassagen  */
+p.important
+{
+    border: 3px solid #ff0000;
+}
+/* Gr�ner Rahmen f�r Hinweis auf Demo-Programm  */
+p.demo
+{
+    border: 3px solid #08f21d;
+}
+
+/* Style f�r Syntax-Aufrufe  */
+span.syntax
+{
+    background-color: #eeeeee;
+}
+
+/* Grauer Hintergrund f�r Inhalts�bersicht und Aufz�hlung
+*/
+p.contents
+{
+    background-color: #eeeeee;
+}
+
+
+/*==================================================
+  Formate f�r Tabellen !
+
+  Zuerst allgemeine Definitionen,
+  die f�r alle Tabellen gleich sind:
+*/
+table.parameter_tab, table.num_tab
+{
+    border: 1px outset;
+    margin-top: 8pt;
+    width: 100%;
+}
+
+th.parameter_tab, th.num_tab, td.parameter_tab, td.num_tab
+{
+    padding-left: 6px;
+    padding-right: 6px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    text-align: left;
+    vertical-align: top;
+    border: 0px solid #ffffff;
+}
+th.parameter_tab, th.num_tab
+{
+    background-color: #EEEEEE;
+}
+td.parameter_tab, td.num_tab
+{
+}
+
+.fubTable{
+	width: auto !important;
+	margin-left: 0px;
+}
+
+/* Tabelle f�r Parameterbeschreibung */
+.parameter_tab
+{
+}
+table.parameter_tab
+{
+    background-color: #f7f7f7;
+}
+th.parameter_tab
+{
+    border: 1px solid #000000;
+}
+td.parameter_tab
+{
+    border: 1px solid #000000;
+    border-top: 0px solid #000000;
+    background-color: #FFFFFF;
+}
+
+/* Tabelle f�r Aufz�hlungen */
+.num_tab
+{
+}
+table.num_tab
+{
+    background-color: #f7f7f7;
+}
+th.num_tab
+{
+    border-right: 1px solid #c0c0c0;
+}
+td.num_tab
+{
+    border-top: 1px solid #c0c0c0;
+    border-right: 1px solid #c0c0c0;
+    background-color: #EEEEEE;
+}
+
+table, td.fubLayout
+{
+    border: 0px solid green;
+    margin-left: auto;
+    margin-right: auto;
+}
+.fubIn, .fubOut
+{
+    width: 150px;
+    border: none;
+}
+.fubIn
+{
+    border-right: none;
+}
+.fubOut
+{
+    border-left: none;
+}
+table.fubData
+{
+    width: 300px;
+}
+.fubGradBlue
+{
+    /** Gradient definition for IE 6-10+**/
+    background: -ms-linear-gradient(left, #5cacee 1%, #ffffff 100%); /* IE10+ */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#5cacee', endColorstr='#ffffff',GradientType=1 ); /* IE6-9 */
+    height: 25px;
+    border: 1px black solid;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+}
+
+
+.fubElementRight, .fubElementLeft
+{
+    text-align: right;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    font-size: 12px;
+}
+.fubElementRight
+{
+    text-align: right;
+}
+.fubElementLeft
+{
+    text-align: left;
+}
+
+.fubDataTypeIn, .fubDataTypeOut, .fubGradOrange1, .fubGradOrange2, .fubGradGrey1, .fubGradGrey2, .fubGradWhite2, .fubGradWhite1
+{
+    border: none;
+    vertical-align: top;
+}
+.fubDataTypeIn
+{
+    border-right: 2px black solid;
+}
+.fubDataTypeOut
+{
+    border-left: 2px black solid;
+}
+
+.fubGradOrange1
+{
+    /** Gradient definition for IE 6-10+**/
+    background: -ms-linear-gradient(left, #FF7F00 1%, #FFB280 100%); /* IE10+ */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#FF7F00', endColorstr='#FFB280',GradientType=1 ); /* IE6-9 */
+    border-left: 1px black solid;
+    padding-left: 10px;
+}
+.fubGradOrange2
+{
+    /** Gradient definition for IE 6-10+**/
+    background: -ms-linear-gradient(left, #FFB280 1%, #ffffff 100%); /* IE10+ */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#FFB280', endColorstr='#ffffff',GradientType=1 ); /* IE6-9 */
+    border-right: 1px black solid;
+    padding-right: 10px;
+}
+.fubGradGrey1
+{
+    /** Gradient definition for IE 6-10+**/
+    background: -ms-linear-gradient(left, #BEBEBE 1%, #DEDEDE 100%); /* IE10+ */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#BEBEBE', endColorstr='#DEDEDE',GradientType=1 ); /* IE6-9 */
+    border-left: 1px black solid;
+    padding-left: 10px;
+}
+.fubGradGrey2
+{
+    /** Gradient definition for IE 6-10+**/
+    background: -ms-linear-gradient(left, #DEDEDE 1%, #ffffff 100%); /* IE10+ */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#DEDEDE', endColorstr='#ffffff',GradientType=1 ); /* IE6-9 */
+    border-right: 1px black solid;
+    padding-right: 10px;
+}
+
+.fubGradWhite1
+{
+    /** Gradient definition for IE 6-10+**/
+    background: -ms-linear-gradient(left, #ffffff 1%, #ffffff 100%); /* IE10+ */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#ffffff',GradientType=1 ); /* IE6-9 */
+    padding-left: 10px;
+    border-bottom: 1px solid black;
+    border-left: 1px black solid;
+}
+.fubGradWhite2
+{
+    /** Gradient definition for IE 6-10+**/
+    background: -ms-linear-gradient(left, #ffffff 1%, #ffffff 100%); /* IE10+ */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#ffffff',GradientType=1 ); /* IE6-9 */
+    padding-right: 10px;
+    border-bottom: 1px solid black;
+    border-right: 1px black solid;
+}
+.fubBottom
+{
+    border-top: 2px solid black;
+}
+.fubTop
+{
+    border-bottom: 2px solid black;
+}
+/*===================================================
+  Allgemeine Definitionen von Absatz-Tags
+*/
+body {
+    background-color: #ffffff;
+     font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 9pt;  }
+p, li, ul, ol, td, th { font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 9pt; }
+h1, h2, h3, h4, h5 { font-family: Arial, Helvetica, sans-serif; }
+h1 { font-size: 14pt; border-bottom: 1pt solid; margin-bottom: 20pt;}
+h2 { font-size: 12pt; margin-top: 30pt;}
+h3 { font-size: 12pt; margin-top: 30pt; font-style: italic;}
+h4 { font-size: 11pt; margin-top: 30pt;}
+h5 { font-size: 10pt; margin-top: 30pt; font-style: italic;}
+
+pre { font-family: Courier New, monospace; font-size: 9pt; }
+
+
+/*==================================================
+  Style für SourceCode Beispiele mit ...
+     ... nicht-proportionaler Schrift => pre.SourceCode
+     ... proportionaler Schrift       => p.SourceCode
+  Schriftart und Schriftgröße sind bereits in den p bzw. pre Definitionen festgelegt.
+*/
+pre.SourceCode, p.pSourceCode {
+    margin: 1em 0; padding: 8px;
+    background-color:#EEEEEE;
+}
+
+
+/*==================================================
+  Style-Definitionen für Tipps, Tricks, Hinweise und wichtige Texte
+
+  Zuerst die Definition von seitlichem Abstand und Hintergrund
+  für .tips und .important:
+*/
+p.tips, p.important, p.demo, p.redundancy {
+    margin:1em 0; padding:8px;
+    background-color:#eeeeee;
+    margin-top:25px;
+    margin-bottom:15px;
+
+}
+
+/* Formatdefinitionen zum Drucken */
+@media print {
+ .DoNotPrintNavItems { display: none; }
+}
+
+
+/* Blauer Rahmen für Hinweise und Tricks  */
+p.tips      { border: 3px solid #6699ff; }
+/* Roter Rahmen für wichtige Textpassagen  */
+p.important { border: 3px solid #ff0000; }
+/* Grüner Rahmen für Hinweis auf Demo-Programm  */
+p.demo      { border: 3px solid #08f21d; }
+/* Oranger Rahmen für Redundanz Textpassagen  */
+p.redundancy { border: 4px solid #cc9900; }
+
+/* Style für Syntax-Aufrufe  */
+span.syntax { background-color: #eeeeee; }
+
+
+/*==================================================
+  Formate für Tabellen !
+
+  Zuerst allgemeine Definitionen,
+  die für alle Tabellen gleich sind:
+*/
+table.parameter_tab, table.num_tab {
+    border: 1px outset;
+    margin-top: 8pt;
+    width: 100%;
+    margin-top: 20pt;    
+    margin-bottom: 15pt;
+}
+th.parameter_tab, th.num_tab, td.parameter_tab, td.num_tab {
+    padding-left: 6px; padding-right:  6px;
+    padding-top:  4px; padding-bottom: 4px;
+    text-align: left;
+    vertical-align: top;
+    border: 0px solid #ffffff;
+}
+th.parameter_tab, th.num_tab {
+    background-color:#EEEEEE;
+}
+td.parameter_tab, td.num_tab {}
+
+/* Tabelle für Parameterbeschreibung */
+.parameter_tab {}
+table.parameter_tab { background-color: #f7f7f7; }
+th.parameter_tab    { border: 1px solid #000000; }
+td.parameter_tab    {
+    border: 1px solid #000000; border-top:0px solid #000000;
+    background-color:#FFFFFF;
+}
+
+/* Tabelle für Aufzählungen */
+.num_tab {}
+table.num_tab { background-color:#f7f7f7; }
+th.num_tab    { border-right:1px solid #c0c0c0; }
+td.num_tab    {
+    border-top: 1px solid #c0c0c0; border-right:1px solid #c0c0c0;
+    background-color:#EEEEEE;
+}
+
+/* Formatdefinitionen zum Drucken */
+@media print {
+ .DoNotPrintNavItems { display: none; }
+}
+
+
+/*Überschrift für Navigation*/
+p.Navigation { font-size: 10pt; font-weight: bold;}
+/* Tabelle für Navigationseinträge */
+table.Navigation        { background-color: #f7f7f7; width: 100%; }
+td.Navigation           { background-color:#f7f7f7; }
+td.Navigation a         { text-decoration: none; }
+td.Navigation a:hover   { text-decoration: underline; }
+
+
+div.ManualTitle { 
+	position: absolute; 
+	top: 0px; right: 0px; 
+	padding: 2px 16px; 
+	background-color: #e7e7e7; 
+	font-size: 8pt;
+	font-weight: bold;
+	border-left: 1px solid #b0b0b0;
+	border-bottom: 1px solid #b0b0b0;
+}
+div.img_float { margin-top: 8px; }
+div.img, .heightOversize, .widthOversize {
+	text-align:left;
+	margin-top: 10pt;
+	margin-bottom: 10pt;
+	Font-size:7pt;
+}
+
+/*Nur für Schema in Funktionsbaustein*/
+div.img_fb {
+    text-align:center;
+	margin-top: 10pt;
+	margin-bottom: 10pt;
+	Font-size:7pt;
+}
+
+
+/*Vorlage SysErrors*/
+div.ErrorCode, .ShortText, .ErrorDescription, .TroubleShootingSuggestion {
+    background-color: #C0C0C0;
+    Font-size: 50pt;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: bold;
+    width: 80%;
+    text-align: justify;
+}
+#ErrorCode, #ShortText, #ErrorDescription, #TroubleShootingSuggestion {
+    max-width: 80%;
+    text-align: justify;
+}
+
+
+/* Informationen für das AS-Help-Tools Plugin:
+==================================================================
+
+AddIn_Name="AS-Help-Tools"
+AddIn_Version="1.6"
+
+text_de="<b>Hinweis:</b><br>Zum Starten eines Demos bitte folgende Schaltfläche betätigen:&nbsp; "
+text_en="<b>Note:</b><br>Please click on the following button to start a demo:&nbsp; "
+text_fr="<b>Hinweis:</b><br>Zum Starten eines Demos bitte folgende Schaltfläche betätigen:&nbsp; "
+
+btn_de="Bitmap:shortcut"
+btn_en="Bitmap:shortcut"
+btn_fr="Bitmap:shortcut"
+
+demo_dir_de="../AsDemo/"
+demo_dir_en="../AsDemo/"
+demo_dir_fr="../AsDemo/"
+
+==================================================================
+*/
