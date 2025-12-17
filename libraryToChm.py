@@ -68,37 +68,41 @@ class LibraryDeclarationToChm():
                 fb_file = self.generate_function_block_file(fbks_folder, fb)
                 html_files.append(fb_file)
         
-        # Create "DataTypes" folder for data types and constants
-        datatypes_folder = lib_folder / "DataTypes"
-        if not datatypes_folder.exists():
-            datatypes_folder.mkdir(parents=True)
+        # Only generate DataTypes section if there are any datatypes
+        has_datatypes = (self.library.structures or self.library.enumerations or self.library.constants)
         
-        # Generate Data types and constants index
-        dt_index_file = self.generate_data_types_and_constants_index(datatypes_folder)
-        html_files.append(dt_index_file)
-        
-        # Generate structures
-        if self.library.structures:
-            struct_index_file = self.generate_structures_index(datatypes_folder, self.library.structures)
-            html_files.append(struct_index_file)
-            for struct in self.library.structures:
-                if struct is not None:
-                    struct_file = self.generate_structure_file(datatypes_folder, struct)
-                    html_files.append(struct_file)
-        
-        # Generate enumerations
-        if self.library.enumerations:
-            enum_index_file = self.generate_enumerations_index(datatypes_folder, self.library.enumerations)
-            html_files.append(enum_index_file)
-            for enum in self.library.enumerations:
-                if enum is not None:
-                    enum_file = self.generate_enumeration_file(datatypes_folder, enum)
-                    html_files.append(enum_file)
-        
-        # Generate constants
-        if self.library.constants:
-            const_file = self.generate_constants_file(datatypes_folder, self.library.constants)
-            html_files.append(const_file)
+        if has_datatypes:
+            # Create "DataTypes" folder for data types and constants
+            datatypes_folder = lib_folder / "DataTypes"
+            if not datatypes_folder.exists():
+                datatypes_folder.mkdir(parents=True)
+            
+            # Generate Data types and constants index
+            dt_index_file = self.generate_data_types_and_constants_index(datatypes_folder)
+            html_files.append(dt_index_file)
+            
+            # Generate structures
+            if self.library.structures:
+                struct_index_file = self.generate_structures_index(datatypes_folder, self.library.structures)
+                html_files.append(struct_index_file)
+                for struct in self.library.structures:
+                    if struct is not None:
+                        struct_file = self.generate_structure_file(datatypes_folder, struct)
+                        html_files.append(struct_file)
+            
+            # Generate enumerations
+            if self.library.enumerations:
+                enum_index_file = self.generate_enumerations_index(datatypes_folder, self.library.enumerations)
+                html_files.append(enum_index_file)
+                for enum in self.library.enumerations:
+                    if enum is not None:
+                        enum_file = self.generate_enumeration_file(datatypes_folder, enum)
+                        html_files.append(enum_file)
+            
+            # Generate constants
+            if self.library.constants:
+                const_file = self.generate_constants_file(datatypes_folder, self.library.constants)
+                html_files.append(const_file)
         
         # Create "Samples" folder (optional - for future use)
         samples_folder = lib_folder / "Samples"
@@ -119,6 +123,9 @@ class LibraryDeclarationToChm():
         """Generate the main index/home page for the CHM in the Gen folder."""
         html_file = build_folder / "index.html"
         
+        # Check if there are any datatypes
+        has_datatypes = (self.library.structures or self.library.enumerations or self.library.constants)
+        
         html_content = f"""<!DOCTYPE html>
 <html>
 <head>
@@ -132,8 +139,13 @@ class LibraryDeclarationToChm():
     <div class="section">
         <h2>Library Contents</h2>
         <ul>
-            <li><a href="../FBKs/FBKs.html">Functions and Function Blocks</a></li>
-            <li><a href="../DataTypes/DataTypes.html">Data types and constants</a></li>
+            <li><a href="../FBKs/FBKs.html">Functions and Function Blocks</a></li>"""
+        
+        if has_datatypes:
+            html_content += """
+            <li><a href="../DataTypes/DataTypes.html">Data types and constants</a></li>"""
+        
+        html_content += """
         </ul>
     </div>
 </body>
@@ -158,7 +170,7 @@ class LibraryDeclarationToChm():
         return css_dest
 
     def copy_hhc_and_create_bat(self, build_folder: Path) -> tuple[Path, Path]:
-        """Copy hhc.exe to the build folder and create a .bat file to rebuild the CHM.
+        """Copy hhc.exe with dependencies dll to the build folder and create a .bat file to rebuild the CHM.
         
         Returns:
             tuple: (Path to copied hhc.exe, Path to created .bat file)
@@ -172,6 +184,11 @@ class LibraryDeclarationToChm():
         else:
             raise FileNotFoundError(f"hhc.exe not found at {hhc_source}")
         
+        # Copy dependencies (dll files) to build folder
+        bin_folder = Path(__file__).parent / "bin"
+        for dll_file in bin_folder.glob("*.dll"):
+            shutil.copy2(dll_file, build_folder / dll_file.name)
+        
         # Create .bat file to rebuild the CHM
         bat_file = build_folder / f"build_Lib{self.library.name}.bat"
         hhp_filename = f"Lib{self.library.name}.hhp"
@@ -179,7 +196,7 @@ class LibraryDeclarationToChm():
         
         bat_content = f"""@echo off
 REM Batch file to rebuild {chm_filename}
-REM Generated automatically by BRLibToMarkdown
+REM Generated automatically by BRLibToHelp
 
 echo Building {chm_filename}...
 hhc.exe "{hhp_filename}"
@@ -1033,9 +1050,12 @@ Title={self.library.name} - Library Documentation
         Structure:
         - General (index.html)
         - FBKs and Functions (folder containing all functions and function blocks)
-        - Data types and constants (folder containing structures, enums, constants)
+        - Data types and constants (folder containing structures, enums, constants) - only if datatypes exist
         """
         hhc_file = build_folder / f"Lib{self.library.name}.hhc"
+        
+        # Check if there are any datatypes
+        has_datatypes = (self.library.structures or self.library.enumerations or self.library.constants)
         
         hhc_content = f"""<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
 <HTML>
@@ -1083,60 +1103,63 @@ Title={self.library.name} - Library Documentation
             hhc_content += """        </UL>
 """
         
-        # Data types and constants section
-        hhc_content += f"""    <LI> <OBJECT type="text/sitemap">
+        # Data types and constants section - only if there are datatypes
+        if has_datatypes:
+            hhc_content += f"""    <LI> <OBJECT type="text/sitemap">
         <param name="Name" value="Data types and constants">
         <param name="Local" value="DataTypes/DataTypes.html">
         </OBJECT>
         <UL>
 """
-        
-        # Structures
-        if self.library.structures:
-            hhc_content += f"""            <LI> <OBJECT type="text/sitemap">
+            
+            # Structures
+            if self.library.structures:
+                hhc_content += f"""            <LI> <OBJECT type="text/sitemap">
                 <param name="Name" value="Structures">
                 <param name="Local" value="DataTypes/Structures/Structures.html">
                 </OBJECT>
                 <UL>
 """
-            for struct in self.library.structures:
-                if struct is not None:
-                    hhc_content += f"""                    <LI> <OBJECT type="text/sitemap">
+                for struct in self.library.structures:
+                    if struct is not None:
+                        hhc_content += f"""                    <LI> <OBJECT type="text/sitemap">
                         <param name="Name" value="{html.escape(struct.name)}">
                         <param name="Local" value="DataTypes/Structures/{html.escape(struct.name)}.html">
                         </OBJECT>
 """
-            hhc_content += """                </UL>
+                hhc_content += """                </UL>
 """
-        
-        # Enumerations
-        if self.library.enumerations:
-            hhc_content += f"""            <LI> <OBJECT type="text/sitemap">
+            
+            # Enumerations
+            if self.library.enumerations:
+                hhc_content += f"""            <LI> <OBJECT type="text/sitemap">
                 <param name="Name" value="Enumerations">
                 <param name="Local" value="DataTypes/Enumerations/Enumerations.html">
                 </OBJECT>
                 <UL>
 """
-            for enum in self.library.enumerations:
-                if enum is not None:
-                    hhc_content += f"""                    <LI> <OBJECT type="text/sitemap">
+                for enum in self.library.enumerations:
+                    if enum is not None:
+                        hhc_content += f"""                    <LI> <OBJECT type="text/sitemap">
                         <param name="Name" value="{html.escape(enum.name)}">
                         <param name="Local" value="DataTypes/Enumerations/{html.escape(enum.name)}.html">
                         </OBJECT>
 """
-            hhc_content += """                </UL>
+                hhc_content += """                </UL>
 """
-        
-        # Constants
-        if self.library.constants:
-            hhc_content += f"""            <LI> <OBJECT type="text/sitemap">
+            
+            # Constants
+            if self.library.constants:
+                hhc_content += f"""            <LI> <OBJECT type="text/sitemap">
                 <param name="Name" value="Constants">
                 <param name="Local" value="DataTypes/Constants/Constants.html">
                 </OBJECT>
 """
+            
+            hhc_content += """        </UL>
+"""
         
-        hhc_content += """        </UL>
-</UL>
+        hhc_content += """</UL>
 </BODY></HTML>
 """
         
@@ -1208,6 +1231,26 @@ Title={self.library.name} - Library Documentation
         if not self.hhc_compiler_path.exists():
             raise FileNotFoundError(f"HTML Help Compiler not found at {self.hhc_compiler_path}")
         
+        # Check for required DLL files in the bin folder
+        # These are the core DLLs needed for hhc.exe to work
+        required_dlls = ['itcc.dll', 'hhcout.dll', 'hhkout.dll', 'hha.dll']
+        hhc_dir = self.hhc_compiler_path.parent
+        missing_dlls = []
+        
+        for dll in required_dlls:
+            dll_path = hhc_dir / dll
+            if not dll_path.exists():
+                missing_dlls.append(dll)
+        
+        if missing_dlls:
+            raise FileNotFoundError(
+                f"hhc.exe requires additional DLL files that are missing:\n"
+                f"Missing: {', '.join(missing_dlls)}\n\n"
+                f"Please copy all DLL files from HTML Help Workshop installation to the bin/ folder.\n"
+                f"Required files should be in: {hhc_dir}\n\n"
+                f"Typical location: C:\\Program Files (x86)\\HTML Help Workshop\\"
+            )
+        
         # hhc.exe returns 1 on success and 0 on failure (opposite of normal)
         # So we need to handle this specially
         try:
@@ -1223,9 +1266,34 @@ Title={self.library.name} - Library Documentation
             if chm_file.exists():
                 return chm_file
             else:
-                raise RuntimeError(f"CHM compilation failed. Return code: {result.returncode}\n"
-                                 f"STDOUT: {result.stdout}\n"
-                                 f"STDERR: {result.stderr}")
+                # Provide more helpful error message for common error codes
+                error_code = result.returncode
+                if error_code == 3221225781 or error_code == -1073741515:  # 0xC0000135
+                    error_msg = (
+                        f"CHM compilation failed due to missing DLL dependencies.\n"
+                        f"Error code: {error_code} (0xC0000135 - DLL Not Found)\n\n"
+                        f"Solution:\n"
+                        f"Copy ALL .dll files from HTML Help Workshop to the bin/ folder:\n"
+                        f"   Source: C:\\Program Files (x86)\\HTML Help Workshop\\*.dll\n"
+                        f"   Destination: {hhc_dir}\\\n\n"
+                        f"You may be missing some of these DLLs:\n"
+                        f"   itcc.dll, hhcout.dll, hhkout.dll, itircl.dll, hha.dll,\n"
+                        f"   advpack.dll, cnvcnt.dll, cnvtoc.dll, gencnv.dll, navout.dll,\n"
+                        f"   spcom.dll, sprbuild.dll, spredit.dll, sprfile.dll, sprlog.dll\n\n"
+                        f"STDOUT: {result.stdout}\n"
+                        f"STDERR: {result.stderr}"
+                    )
+                else:
+                    error_msg = (
+                        f"CHM compilation failed. Return code: {error_code}\n"
+                        f"STDOUT: {result.stdout}\n"
+                        f"STDERR: {result.stderr}"
+                    )
+                raise RuntimeError(error_msg)
         
+        except FileNotFoundError as e:
+            raise
+        except RuntimeError as e:
+            raise
         except Exception as e:
             raise RuntimeError(f"Error compiling CHM: {str(e)}")
