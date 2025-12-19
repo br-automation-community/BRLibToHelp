@@ -1,12 +1,12 @@
 # Introduction 
-This python project is used to parse B&R Automation library from Automation Studio project and generate a CHM help file, it let generate sources and a .bat file to recompile it if modifications are made.
+This python project is used to parse B&R Automation library from Automation Studio project and generate a CHM help file. It generates sources and a .bat file to recompile it if modifications are made.
 
 > [!NOTE]  
 > If you add / remove html files you may have troubles trying to regenerate it from the .bat file. If you delete / add functions or function blocks please run again the python application.
 
-It handle IEC and ANSI C libraries.
+It handles IEC and ANSI C libraries.
 > [!WARNING]
-> For ANSI C if there is header files in the library folder (.h) they are not parsed.
+> For ANSI C, if there are header files in the library folder (.h) they are not parsed.
 
 # Requirements
 - Python 3.13.9 (only if running from source)
@@ -21,13 +21,15 @@ A pre-built executable is available in the [Releases](../../releases) section. N
 2. Run the executable directly
 3. Use the GUI to select your library folder and generate CHM files
 
+**📖 For detailed usage instructions with screenshots, see the [Usage Guide](USAGE.md)**
+
 ## Option 2: Run from Source
 
 1.  Clone the repo
-2.  Go in the directory `cd BrLibToMarkdown`
-3.  Create new Python virtual environnement `python -m venv .venv`
-4.  Activate the virtual environnement `./.venv/Scripts/activate`
-5.  Install dependencies `python -p pip install -r ./requirements.txt`
+2.  Go in the directory `cd BRLibToHelp`
+3.  Create new Python virtual environment `python -m venv .venv`
+4.  Activate the virtual environment `./.venv/Scripts/activate`
+5.  Install dependencies `pip install -r ./requirements.txt`
 6.  Run the application: `python main.py`
 
 # Using the Generated CHM Help File
@@ -63,7 +65,7 @@ build/<LibraryName>/chm/
 ├── Lib<LibraryName>.chm           # Main CHM file (copy this to Help/ folder)
 ├── build_Lib<LibraryName>.bat     # Batch file to rebuild CHM
 ├── hhc.exe                        # HTML Help Compiler
-├── *.dll                          # Some required DLLs for HHC
+├── *.dll                          # Required DLLs for HHC
 ├── style.css                      # Styling
 ├── Gen/                           # General documentation
 ├── FBKs/                          # Functions and Function Blocks
