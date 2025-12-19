@@ -1,3 +1,12 @@
+"""CHM (Compiled HTML Help) generator for B&R Automation Studio libraries.
+
+This module converts B&R library declarations into CHM help files with:
+- Function and function block documentation
+- Structure and enumeration references
+- Constant definitions
+- Hyperlinked type references
+- Visual function block diagrams
+"""
 from datatypes import Library, Function, FunctionBlock, VarInput, VarOutput, Structure, Enumeration, VarConstant
 from pathlib import Path
 from typing import List
@@ -5,12 +14,25 @@ import subprocess
 import html
 import shutil
 from htmlGenerator import FunctionBlockHtmlGenerator
+from utils import get_resource_path
 
 
 class LibraryDeclarationToChm():
+    """Generates CHM help files from B&R library declarations.
+    
+    This class handles the complete conversion process from parsed library
+    data to a compiled CHM help file, including HTML generation, file
+    organization, and CHM compilation using Microsoft HTML Help Workshop.
+    """
+    
     def __init__(self, library: Library) -> None:
+        """Initialize the CHM generator.
+        
+        Args:
+            library: Parsed Library object containing all library elements.
+        """
         self.library: Library = library
-        self.hhc_compiler_path = Path("./bin/hhc.exe")
+        self.hhc_compiler_path = get_resource_path("bin/hhc.exe")
         self.html_generator = FunctionBlockHtmlGenerator()
 
     def generate_library_chm(self, build_folder: str = "./build/") -> str:
@@ -159,7 +181,7 @@ class LibraryDeclarationToChm():
     def copy_css_file(self, build_folder: Path) -> Path:
         """Copy the style.css file to the build folder."""
         # Source CSS file
-        css_source = Path(__file__).parent / "css" / "style.css"
+        css_source = get_resource_path("css/style.css")
         
         # Destination CSS file
         css_dest = build_folder / "style.css"
@@ -176,7 +198,7 @@ class LibraryDeclarationToChm():
             tuple: (Path to copied hhc.exe, Path to created .bat file)
         """
         # Copy hhc.exe to build folder
-        hhc_source = Path(__file__).parent / "bin" / "hhc.exe"
+        hhc_source = get_resource_path("bin/hhc.exe")
         hhc_dest = build_folder / "hhc.exe"
         
         if hhc_source.exists():
@@ -185,7 +207,7 @@ class LibraryDeclarationToChm():
             raise FileNotFoundError(f"hhc.exe not found at {hhc_source}")
         
         # Copy dependencies (dll files) to build folder
-        bin_folder = Path(__file__).parent / "bin"
+        bin_folder = get_resource_path("bin")
         for dll_file in bin_folder.glob("*.dll"):
             shutil.copy2(dll_file, build_folder / dll_file.name)
         

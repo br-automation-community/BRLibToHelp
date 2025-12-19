@@ -1,3 +1,11 @@
+"""Parsers for B&R Automation Studio library files.
+
+This module provides parsers for:
+- Function blocks (.fun files)
+- Functions (.fun files)
+- Structures and Enumerations (.typ files)
+- Constants (.var files)
+"""
 import re
 from datatypes import *
 import dataclasses
@@ -6,10 +14,28 @@ from pathlib import Path
 import json
 
 class Parser:
+    """Base parser class with common parsing methods for B&R types."""
+    
     def parse_comment(self, text: str) -> Comment:
+        """Parse a comment string into a Comment object.
+        
+        Args:
+            text: The comment text to parse.
+            
+        Returns:
+            Comment object with trimmed text.
+        """
         return Comment(text=text.strip())
 
     def parse_array_dimension(self, dim_str: str) -> ArrayDimension:
+        """Parse an array dimension string (e.g., '0..10' or 'MIN..MAX').
+        
+        Args:
+            dim_str: String representing an array dimension.
+            
+        Returns:
+            ArrayDimension object with bounds and constant flags.
+        """
         lower_bound, upper_bound = dim_str.split('..')
         is_constant_lower = not lower_bound.isdigit()
         is_constant_upper = not upper_bound.isdigit()
@@ -18,6 +44,14 @@ class Parser:
         return ArrayDimension(lower_bound=lower_bound, upper_bound=upper_bound, is_constant_lower=is_constant_lower, is_constant_upper=is_constant_upper)
 
     def parse_type(self, type_str: str) -> Union[BasicType, ArrayType, StringType]:
+        """Parse a type string into BasicType, ArrayType, or StringType.
+        
+        Args:
+            type_str: Type string (e.g., 'INT', 'ARRAY[0..10] OF REAL', 'STRING[80]').
+            
+        Returns:
+            Appropriate type object (BasicType, ArrayType, or StringType).
+        """
         array_pattern = re.compile(r'ARRAY\s*\[(.*?)\]\s*OF\s*(\w+)')
         string_pattern = re.compile(r'STRING\s*\[(\w+)\]')
         
@@ -35,6 +69,16 @@ class Parser:
         return BasicType(type=type_str)
 
     def parse_variable_section(self, section: str, var_class, is_retain: bool = False) -> List[Variable]:
+        """Parse a variable section and extract all variable declarations.
+        
+        Args:
+            section: The section content to parse.
+            var_class: The variable class to instantiate (VarInput, VarOutput, etc.).
+            is_retain: Whether variables have RETAIN keyword.
+            
+        Returns:
+            List of variable objects.
+        """
         variables = []
         # Pattern that handles both regular variables and constants with default values
         # Matches: NAME : TYPE; or NAME : TYPE := VALUE;
@@ -58,6 +102,8 @@ class Parser:
     
 
 class FunctionBlockParser(Parser):
+    """Parser for B&R function block declarations."""
+    
     def parse(self, content: str) -> FunctionBlock:
         fb_pattern = re.compile(r'FUNCTION_BLOCK\s+(\w+)\s*(?:\(\*(.*?)\*\))?', re.DOTALL)
         var_section_pattern = re.compile(r'VAR(_INPUT|_OUTPUT|_CONSTANT|_IN_OUT)?\s*(RETAIN)?\s*(.*?)\s*END_VAR', re.DOTALL)
@@ -91,6 +137,8 @@ class FunctionBlockParser(Parser):
         return function_block
 
 class FunctionParser(Parser):
+    """Parser for B&R function declarations."""
+    
     def parse(self, content: str) -> Function:
         func_pattern = re.compile(r'FUNCTION\s+(\w+)\s*:\s*(\w+)\s*(?:\(\*(.*?)\*\))?', re.DOTALL)
         var_section_pattern = re.compile(r'VAR(_INPUT|_IN_OUT)?\s*(.*?)\s*END_VAR', re.DOTALL)
@@ -120,6 +168,8 @@ class FunctionParser(Parser):
         return function
     
 class StructureParser(Parser):
+    """Parser for B&R structure type declarations."""
+    
     def parse(self, content: str) -> Structure:
         # Match: TypeName : STRUCT (*optional comment*) ... END_STRUCT;
         # Capture groups: (name, description, members_content)
@@ -139,6 +189,8 @@ class StructureParser(Parser):
         return structure
 
 class EnumerationParser(Parser):
+    """Parser for B&R enumeration type declarations."""
+    
     def parse(self, content: str) -> Enumeration:
         # First, remove multi-line comments that are on their own lines (not inline comments)
         # This handles commented-out enum values like: (*rbSTA_INIT_XXX := 16#1XXX, ...*)
@@ -214,13 +266,20 @@ class EnumerationParser(Parser):
         
         return enumeration
 class LibraryDeclarationFileParser:
+    """Parser for B&R library declaration (.fun) files."""
         
     def __init__(self) -> None:
+        """Initialize the library parser with function and function block parsers."""
         self.fb_parser = FunctionBlockParser()
         self.func_parser = FunctionParser()
         self.library = Library()
 
     def parse_fun_file(self, file_path: str) -> None:
+        """Parse a .fun library declaration file.
+        
+        Args:
+            file_path: Path to the .fun file.
+        """
         with open(file_path, 'r') as file:
             content = file.read()
         self.library.name = Path(file_path).parent.name
@@ -236,6 +295,14 @@ class LibraryDeclarationFileParser:
                 self.library.functions.append(self.func_parser.parse(block))
 
     def parse_blocks(self, file_content) -> list[str]:
+        """Extract individual function and function block declarations from file content.
+        
+        Args:
+            file_content: The content of the .fun file.
+            
+        Returns:
+            List of function/function block declaration strings.
+        """
         # Define the regex pattern to match the blocks with case sensitivity
         pattern = re.compile(r'(FUNCTION_BLOCK|FUNCTION).*?(END_FUNCTION_BLOCK|END_FUNCTION)', re.DOTALL)
         
@@ -250,9 +317,19 @@ class LibraryDeclarationFileParser:
 
 
     def get_library(self) -> Library:
+        """Get the parsed library object.
+        
+        Returns:
+            Library object containing all parsed functions and function blocks.
+        """
         return self.library
     
     def _get_library_as_json(self) -> str:
+        """Convert the library object to JSON format.
+        
+        Returns:
+            JSON string representation of the library.
+        """
         class EnhancedJSONEncoder(json.JSONEncoder):
             def default(self, o):
                 if dataclasses.is_dataclass(o):
@@ -262,18 +339,29 @@ class LibraryDeclarationFileParser:
         return json.dumps(self.get_library(), cls=EnhancedJSONEncoder)
     
     def _print_library_as_json(self) -> None:
+        """Print the library as JSON to console."""
         print(self._get_library_as_json())
         
         
 class TypeFileParser(Parser):
+    """Parser for B&R type declaration (.typ) files containing structures and enumerations."""
     
     def __init__(self) -> None:
+        """Initialize the type file parser."""
         self.struct_parser = StructureParser()
         self.enum_parser = EnumerationParser()
         self.structures: List[Structure] = []
         self.enumerations: List[Enumeration] = []
     
     def parse_typ_file(self, file_path: str) -> tuple[List[Structure], List[Enumeration]]:
+        """Parse a .typ file containing type declarations.
+        
+        Args:
+            file_path: Path to the .typ file.
+            
+        Returns:
+            Tuple of (structures list, enumerations list).
+        """
         with open(file_path, 'r', encoding='utf-8', errors='ignore') as file:
             content = file.read()
         
@@ -312,6 +400,14 @@ class TypeFileParser(Parser):
         return self.structures, self.enumerations
     
     def parse_type_blocks(self, file_content: str) -> list[str]:
+        """Extract all TYPE blocks from the file content.
+        
+        Args:
+            file_content: Content of the .typ file.
+            
+        Returns:
+            List of TYPE block contents.
+        """
         # Match TYPE ... END_TYPE blocks
         pattern = re.compile(r'TYPE\s+(.*?)\s+END_TYPE', re.DOTALL | re.IGNORECASE)
         
@@ -420,14 +516,26 @@ class TypeFileParser(Parser):
     
     
     def get_structures(self) -> List[Structure]:
+        """Get the list of parsed structures.
+        
+        Returns:
+            List of Structure objects.
+        """
         return self.structures
     
     def get_enumerations(self) -> List[Enumeration]:
+        """Get the list of parsed enumerations.
+        
+        Returns:
+            List of Enumeration objects.
+        """
         return self.enumerations
     
 class VarFileParser(Parser):
+    """Parser for B&R variable declaration (.var) files containing constants."""
     
     def __init__(self) -> None:
+        """Initialize the variable file parser."""
         self.constants: List[VarConstant] = []
     
     def parse_var_file(self, file_path: str) -> List[VarConstant]:
@@ -476,12 +584,3 @@ class VarFileParser(Parser):
             List of VarConstant objects
         """
         return self.constants
-    
-
-if __name__ == "__main__":
-    libFileParser = LibraryDeclarationFileParser()
-    libFileParser.parse_fun_file(file_path="C:/BuR/Axis.txt")
-    library = libFileParser.get_library()
-
-    with open("temp.json", "w") as f:
-        f.write(libFileParser._get_library_as_json())

@@ -1,19 +1,47 @@
+"""HTML generation utilities for B&R function block diagrams.
+
+This module provides functionality to generate visual representations of
+B&R functions and function blocks as HTML tables with styling.
+"""
 from datatypes import Function, FunctionBlock
 from pathlib import Path
 
 
 class FunctionBlockHtmlGenerator:
-    """Shared HTML generator for function block diagrams used by both libraryToPng and libraryToChm."""
+    """HTML generator for function block and function diagrams.
+    
+    Generates styled HTML tables that visually represent B&R functions
+    and function blocks with inputs, outputs, and in/out parameters.
+    """
     
     def __init__(self):
         pass
     
     def generate_fub_diagram_html(self, fb: Function | FunctionBlock) -> str:
-        """Generate the HTML for a function block diagram (the visual representation)."""
+        """Generate the HTML for a function block diagram.
+        
+        Args:
+            fb: Function or FunctionBlock object to visualize.
+            
+        Returns:
+            HTML string with styled table representation.
+        """
         return self.generate_fub_table(fb)
     
     def generate_fub_table(self, fb: Function | FunctionBlock) -> str:
-        """Generate the complete function block table HTML."""
+        """Generate the complete function block table HTML.
+        
+        Creates a multi-section table with:
+        - Header with name
+        - Input/output section (orange background)
+        - In/out section (white background)
+        
+        Args:
+            fb: Function or FunctionBlock object.
+            
+        Returns:
+            HTML string with complete table structure.
+        """
         content = f"""
         <table id="fub" cellspacing="0" class="fubLayout">
             {self.generate_fub_top_border()}
@@ -45,7 +73,14 @@ class FunctionBlockHtmlGenerator:
         return content
     
     def generate_in_out_table_datatype_in(self, fb: Function | FunctionBlock) -> str:
-        """Generate the left datatype column for IN_OUT variables."""
+        """Generate the left datatype column for IN_OUT variables.
+        
+        Args:
+            fb: Function or FunctionBlock object.
+            
+        Returns:
+            HTML string with datatype column for in/out parameters.
+        """
         content = f"""
                 <td class="fubDataTypeIn">
                     <table class="fubData">"""
@@ -69,7 +104,14 @@ class FunctionBlockHtmlGenerator:
         return content
     
     def generate_in_out_table_datatype_out(self, fb: Function | FunctionBlock) -> str:
-        """Generate the right datatype column for IN_OUT variables."""
+        """Generate the right datatype column for IN_OUT variables.
+        
+        Args:
+            fb: Function or FunctionBlock object.
+            
+        Returns:
+            HTML string with datatype column for in/out parameters.
+        """
         content = f"""
                 <td class="fubDataTypeOut">
                     <table class="fubData">"""
@@ -93,7 +135,14 @@ class FunctionBlockHtmlGenerator:
         return content
     
     def generate_in_out_table_in_out(self, fb: Function | FunctionBlock) -> str:
-        """Generate the center column for IN_OUT variable names."""
+        """Generate the center column for IN_OUT variable names.
+        
+        Args:
+            fb: Function or FunctionBlock object.
+            
+        Returns:
+            HTML string with in/out parameter names.
+        """
         content = f"""
                 <td colspan="2" class="fubInOut">
                     <table>"""
@@ -110,7 +159,11 @@ class FunctionBlockHtmlGenerator:
         return content
     
     def generate_fub_top_border(self) -> str:
-        """Generate the top border row of the function block."""
+        """Generate the top border row of the function block.
+        
+        Returns:
+            HTML string with top border table row.
+        """
         return f"""
             <tr>
                 <td></td>
@@ -120,7 +173,11 @@ class FunctionBlockHtmlGenerator:
             </tr>"""
     
     def generate_fub_bottom_border(self) -> str:
-        """Generate the bottom border row of the function block."""
+        """Generate the bottom border row of the function block.
+        
+        Returns:
+            HTML string with bottom border table row.
+        """
         return f"""
             <tr>
                 <td></td>
@@ -130,14 +187,28 @@ class FunctionBlockHtmlGenerator:
             </tr>"""
     
     def generate_table_header(self, fb: Function | FunctionBlock) -> str:
-        """Generate the header row with the function/function block name."""
+        """Generate the header row with the function/function block name.
+        
+        Args:
+            fb: Function or FunctionBlock object.
+            
+        Returns:
+            HTML string with header row containing the name.
+        """
         return f"""
             <th class="fubDataTypeIn"></th>
             <th colspan="2" class="fubGradBlue">{fb.name}</th>
             <th class="fubDataTypeOut"></th>"""
     
     def generate_table_datatype_in(self, fb: Function | FunctionBlock) -> str:
-        """Generate the left datatype column for input variables."""
+        """Generate the left datatype column for input variables.
+        
+        Args:
+            fb: Function or FunctionBlock object.
+            
+        Returns:
+            HTML string with input datatypes column.
+        """
         content = f"""
                 <td class="fubDataTypeIn">
                     <table class="fubData">"""
@@ -161,7 +232,14 @@ class FunctionBlockHtmlGenerator:
         return content
     
     def generate_table_in(self, fb: Function | FunctionBlock) -> str:
-        """Generate the input variables column."""
+        """Generate the input variables column.
+        
+        Args:
+            fb: Function or FunctionBlock object.
+            
+        Returns:
+            HTML string with input variable names column.
+        """
         content = f"""
                 <td class="fubGradOrange1">
                     <table class="fubIn">"""
@@ -178,7 +256,16 @@ class FunctionBlockHtmlGenerator:
         return content
     
     def generate_table_out(self, fb: Function | FunctionBlock) -> str:
-        """Generate the output variables column."""
+        """Generate the output variables column.
+        
+        For functions, shows 'return'. For function blocks, shows output variables.
+        
+        Args:
+            fb: Function or FunctionBlock object.
+            
+        Returns:
+            HTML string with output variable names column.
+        """
         content = f"""
                 <td class="fubGradOrange2">
                     <table class="fubOut">"""
@@ -201,7 +288,16 @@ class FunctionBlockHtmlGenerator:
         return content
     
     def generate_table_datatype_out(self, fb: Function | FunctionBlock) -> str:
-        """Generate the right datatype column for output variables."""
+        """Generate the right datatype column for output variables.
+        
+        For functions, shows return type. For function blocks, shows output types.
+        
+        Args:
+            fb: Function or FunctionBlock object.
+            
+        Returns:
+            HTML string with output datatypes column.
+        """
         content = f"""
                 <td class="fubDataTypeOut">
                     <table class="fubData">"""
@@ -230,7 +326,11 @@ class FunctionBlockHtmlGenerator:
         return content
     
     def get_style_content(self) -> str:
-        """Read and return the CSS style content from the css/style.css file."""
+        """Read and return the CSS style content from the css/style.css file.
+        
+        Returns:
+            CSS content as a string.
+        """
         style_path = Path(__file__).parent.resolve()
         style_path = style_path / "css/style.css"
         with open(style_path.as_posix(), "r") as f:
@@ -238,6 +338,10 @@ class FunctionBlockHtmlGenerator:
         return file_content
     
     def generate_style_section(self) -> str:
-        """Generate the <style> section with the CSS content."""
+        """Generate the <style> section with the CSS content.
+        
+        Returns:
+            HTML <style> tag with embedded CSS.
+        """
         style_content = self.get_style_content()
         return f'\t<style type="text/css">\n{style_content}\n\t</style>'

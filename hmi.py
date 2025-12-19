@@ -1,3 +1,10 @@
+"""GUI application for converting B&R Automation libraries to CHM help files.
+
+This module provides a Tkinter-based graphical user interface that allows users to:
+- Select a B&R library folder
+- Choose a build output directory
+- Generate CHM documentation from the library
+"""
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from pathlib import Path
@@ -8,11 +15,32 @@ from libraryToChm import LibraryDeclarationToChm
 from datatypes import Structure, Enumeration, VarConstant
 import subprocess
 from os.path import normpath
+from utils import get_resource_path
 
 class BRLibToMarkdownApp:
+    """Main application class for the B&R Library to CHM converter.
+    
+    Args:
+        root: The root Tkinter window instance.
+    """
+    
     def __init__(self, root):
+        """Initialize the application GUI.
+        
+        Args:
+            root: Tkinter root window.
+        """
         self.root = root
-        self.root.title("B&R Lib to Markdown App")
+        self.root.title("B&R Lib to CHM Help")
+        
+        # Set window icon if available
+        try:
+            icon_path = get_resource_path("icon.ico")
+            if icon_path.exists():
+                self.root.iconbitmap(icon_path)
+        except Exception as e:
+            # If icon cannot be loaded, continue without it
+            pass
 
         # Library folder path
         self.folder_path_library_label = tk.Label(root, text="Library folder path:")
@@ -46,6 +74,7 @@ class BRLibToMarkdownApp:
         self.quit_button.grid(row=3, column=0, columnspan=3, pady=10)
 
     def browse_folder_library(self):
+        """Open a directory browser dialog to select the library folder."""
         folder_selected = filedialog.askdirectory()
         if folder_selected:
             self.folder_path_library_entry.config(state="normal")
@@ -55,6 +84,7 @@ class BRLibToMarkdownApp:
         self.start_is_valid()
 
     def browse_folder_build(self):
+        """Open a directory browser dialog to select the build output folder."""
         folder_selected = filedialog.askdirectory()
         if folder_selected:
             self.folder_path_build_entry.config(state="normal")
@@ -65,12 +95,18 @@ class BRLibToMarkdownApp:
 
 
     def start_is_valid(self) -> None:
+        """Enable or disable the Start button based on folder path validation."""
         if self.folder_path_are_valid():
             self.start_button.config(state="normal")
         else:
             self.start_button.config(state="disabled")
 
     def folder_path_are_valid(self) -> bool:
+        """Validate that both library and build folder paths exist.
+        
+        Returns:
+            bool: True if both paths are valid and exist, False otherwise.
+        """
         folder_path_library = self.folder_path_library_entry.get()
         folder_path_build = self.folder_path_build_entry.get()
         if folder_path_build != "" and folder_path_library != "":
@@ -80,6 +116,14 @@ class BRLibToMarkdownApp:
         return False
 
     def start(self):
+        """Start the library to CHM conversion process.
+        
+        This method:
+        - Parses the library declaration files
+        - Extracts functions, function blocks, structures, enumerations, and constants
+        - Generates the CHM help file
+        - Displays a summary and optionally opens the build folder
+        """
         folder_path_library = self.folder_path_library_entry.get()
         folder_path_build = self.folder_path_build_entry.get()
         select_lib = SelectLibrary(folder_path_library)
