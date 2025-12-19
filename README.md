@@ -69,14 +69,74 @@ build/<LibraryName>/chm/
 └── DataTypes/                     # Structures, Enumerations, Constants
 ```
 
-# Additionnal elements to add manually in html files
+# Customizing the Generated Documentation
+
+## Additional HTML Classes for Enhanced Styling
+
+You can manually enhance the generated HTML files with custom CSS classes for special content formatting:
+
+### Available Classes
+
 ```html
-<p class="tips">This is a "tips" example.</p>
+<!-- For helpful tips and suggestions -->
+<p class="tips">💡 Tip: Use this parameter to optimize performance.</p>
 
-<p class="important">This is an "important" example.</p>
+<!-- For critical warnings or important information -->
+<p class="important">⚠️ Important: This function must be called in a cyclic task.</p>
 
-<p class="demo">This is a "demo" example.</p>
+<!-- For demo code or example usage -->
+<p class="demo">📝 Demo: See example implementation in the samples folder.</p>
 
-<p class="redundancy">This is a "redundancy" example.</p>
+<!-- For redundancy system information -->
+<p class="redundancy">🔄 Redundancy: This function block supports redundant systems.</p>
 ```
-![Additionnal classes](/images/AdditionnalClasses.png)
+
+### Visual Result
+
+These classes provide distinct visual styling to make important information stand out:
+
+![Additional CSS Classes](images/AdditionnalClasses.png)
+
+### How to Add Custom Content
+
+1. Navigate to the generated HTML files in `build/<LibraryName>/chm/`
+2. Open the desired HTML file in a text editor (e.g., Notepad++, VS Code)
+3. Locate the section where you want to add the styled content
+4. Insert the HTML with your chosen class
+5. Save the file
+
+### Example: Adding a Tip to a Function
+
+```html
+<h2>MC_MoveAbsolute</h2>
+<p>Moves the axis to an absolute position.</p>
+
+<!-- Add your custom tip here -->
+<p class="tips">💡 Tip: For optimal motion, ensure acceleration and deceleration values are properly configured.</p>
+
+<h3>Parameters</h3>
+<!-- ... rest of the documentation ... -->
+```
+
+> [!IMPORTANT]
+> **After modifying HTML files, you must rebuild the CHM file:**
+> 1. Navigate to `build/<LibraryName>/chm/`
+> 2. Double-click `build_Lib<LibraryName>.bat`
+> 3. Wait for compilation to complete
+> 4. The updated `Lib<LibraryName>.chm` file will contain your changes
+>
+> **Note:** If you add/remove entire HTML files or change the structure, regenerate the documentation using the main application instead of the rebuild script.
+
+> [!WARNING]
+> **All manual modifications will be lost if you regenerate the documentation!**
+> 
+> If you run the BRLibToHelp application again on the same library:
+> - All HTML files will be regenerated from scratch
+> - Any custom content you added (tips, warnings, examples) will be **permanently deleted**
+> - You will need to manually re-add your customizations
+> 
+> **Best Practices:**
+> - Keep a backup copy of your customized HTML files
+> - Document your customizations in a separate file for easy re-application
+> - Only regenerate when library structure changes (new functions, changed parameters)
+> - Use the rebuild batch file for minor HTML tweaks instead of full regeneration
