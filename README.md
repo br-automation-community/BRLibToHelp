@@ -60,9 +60,10 @@ To enable F1 context-sensitive help in Automation Studio:
 After running the application, you'll find in the build folder:
 ```
 build/<LibraryName>/chm/
-├── Lib<LibraryName>.chm          # Main CHM file (copy this to Help/ folder)
-├── build_Lib<LibraryName>.bat    # Batch file to rebuild CHM
+├── Lib<LibraryName>.chm           # Main CHM file (copy this to Help/ folder)
+├── build_Lib<LibraryName>.bat     # Batch file to rebuild CHM
 ├── hhc.exe                        # HTML Help Compiler
+├── *.dll                          # Some required DLLs for HHC
 ├── style.css                      # Styling
 ├── Gen/                           # General documentation
 ├── FBKs/                          # Functions and Function Blocks
