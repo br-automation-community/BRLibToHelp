@@ -207,9 +207,12 @@ class Library:
     Attributes:
         name: Library name
         description: Optional library description
-        version: Library version
-        type: Library type
-        dependency_libraries: List of dependent library names
+        version: Library version (default: "1.0.0")
+        type: Library type (SubType from .lby: IEC, binary, ANSIC, etc.)
+        header_file_name: Optional header file name
+        file_version: AutomationStudio file version
+        files: List of files included in the library
+        dependency_libraries: List of dependent library names with version info
         functions: List of library functions
         function_blocks: List of library function blocks
         structures: List of library structures
@@ -218,9 +221,12 @@ class Library:
     """
     name: str = field(default="")
     description: Optional[str] = field(default=None)
-    version: Optional[str] = field(default=None)
+    version: str = field(default="1.0.0")
     type: Optional[str] = field(default=None)
-    dependency_libraries: Optional[List[str]] = field(default_factory=list)
+    header_file_name: Optional[str] = field(default=None)
+    file_version: Optional[str] = field(default=None)
+    files: Optional[List[str]] = field(default_factory=list)
+    dependency_libraries: Optional[List[dict]] = field(default_factory=list)
     functions: Optional[List[Function]] = field(default_factory=list)
     function_blocks: Optional[List[FunctionBlock]] = field(default_factory=list)
     structures: Optional[List[Structure]] = field(default_factory=list)

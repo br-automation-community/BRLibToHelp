@@ -5,6 +5,7 @@ This module provides parsers for:
 - Functions (.fun files)
 - Structures and Enumerations (.typ files)
 - Constants (.var files)
+- Library metadata (.lby files)
 """
 import re
 from datatypes import *
@@ -12,6 +13,7 @@ import dataclasses
 from typing import List, Union
 from pathlib import Path
 import json
+import xml.etree.ElementTree as ET
 
 class Parser:
     """Base parser class with common parsing methods for B&R types."""
@@ -584,3 +586,125 @@ class VarFileParser(Parser):
             List of VarConstant objects
         """
         return self.constants
+
+class LibraryFileParser:
+    """Parser for B&R library metadata (.lby) files."""
+    
+    def __init__(self) -> None:
+        """Initialize the library file parser."""
+        self.metadata = {}
+    
+    def parse_lby_file(self, file_path: str) -> dict:
+        """Parse a .lby file and extract library metadata.
+        
+        Args:
+            file_path: Path to the .lby file.
+            
+        Returns:
+            Dictionary containing library metadata with the following keys:
+            - name: Library name (extracted from parent folder name)
+            - version: Library version (default: "1.0.0" if not present)
+            - type: SubType attribute (IEC, binary, ANSIC, etc.) - optional
+            - description: Library description - optional
+            - header_file_name: HeaderFileName attribute - optional
+            - file_version: AutomationStudio FileVersion - optional
+            - files: List of file paths with descriptions
+            - dependencies: List of dependency dictionaries with ObjectName, FromVersion, ToVersion
+        """
+        try:
+            tree = ET.parse(file_path)
+            root = tree.getroot()
+            
+            # Extract library name from parent folder
+            library_name = Path(file_path).parent.name
+            
+            # Extract attributes from Library element
+            # Version defaults to "1.0.0" if not present
+            version = root.get('Version', '1.0.0')
+            subtype = root.get('SubType')  # Optional: IEC, binary, ANSIC, etc.
+            description = root.get('Description')  # Optional
+            header_file_name = root.get('HeaderFileName')  # Optional
+            
+            # Extract AutomationStudio FileVersion from processing instruction
+            file_version = None
+            for child in tree.iter():
+                if child.tag == '{http://www.w3.org/XML/1998/namespace}AutomationStudio':
+                    file_version = child.get('FileVersion')
+                    break
+            
+            # If not found in tags, check processing instructions
+            if file_version is None:
+                for pi in tree.iter():
+                    if hasattr(pi, 'target') and pi.target == 'AutomationStudio':
+                        # Parse the PI text for FileVersion
+                        if hasattr(pi, 'text'):
+                            match = re.search(r'FileVersion="([^"]+)"', pi.text)
+                            if match:
+                                file_version = match.group(1)
+            
+            self.metadata = {
+                "name": library_name,
+                "version": version,
+                "type": subtype,
+                "description": description,
+                "header_file_name": header_file_name,
+                "file_version": file_version,
+                "files": [],
+                "dependencies": []
+            }
+            
+            # Extract Files
+            files_element = root.find('{http://br-automation.co.at/AS/Library}Files')
+            if files_element is not None:
+                for file_elem in files_element.findall('{http://br-automation.co.at/AS/Library}File'):
+                    file_info = {
+                        "path": file_elem.text,
+                        "description": file_elem.get('Description')
+                    }
+                    self.metadata["files"].append(file_info)
+            
+            # Extract Dependencies
+            deps_element = root.find('{http://br-automation.co.at/AS/Library}Dependencies')
+            if deps_element is not None:
+                for dep_elem in deps_element.findall('{http://br-automation.co.at/AS/Library}Dependency'):
+                    dependency = {
+                        "object_name": dep_elem.get('ObjectName'),
+                        "from_version": dep_elem.get('FromVersion'),
+                        "to_version": dep_elem.get('ToVersion')
+                    }
+                    self.metadata["dependencies"].append(dependency)
+            
+            return self.metadata
+            
+        except ET.ParseError as e:
+            raise ValueError(f"Failed to parse XML file: {e}")
+        except Exception as e:
+            raise ValueError(f"Error parsing .lby file: {e}")
+    
+    def get_metadata(self) -> dict:
+        """Get the parsed library metadata.
+        
+        Returns:
+            Dictionary containing library metadata.
+        """
+        return self.metadata
+    
+    def update_library_object(self, library: Library) -> None:
+        """Update a Library object with the parsed metadata.
+        
+        Args:
+            library: Library object to update with metadata.
+        """
+        if self.metadata:
+            library.name = self.metadata.get("name", library.name)
+            library.version = self.metadata.get("version", "1.0.0")
+            library.type = self.metadata.get("type")
+            library.description = self.metadata.get("description")
+            library.header_file_name = self.metadata.get("header_file_name")
+            library.file_version = self.metadata.get("file_version")
+            
+            # Store file paths (extract just the path string)
+            library.files = [f["path"] for f in self.metadata.get("files", [])]
+            
+            # Store dependencies
+            library.dependency_libraries = self.metadata.get("dependencies", [])

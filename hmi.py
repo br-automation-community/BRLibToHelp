@@ -9,7 +9,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 from pathlib import Path
 from typing import List
-from parser import LibraryDeclarationFileParser, TypeFileParser, VarFileParser
+from parser import LibraryDeclarationFileParser, TypeFileParser, VarFileParser, LibraryFileParser
 from selectLibrary import SelectLibrary
 from libraryToChm import LibraryDeclarationToChm
 from datatypes import Structure, Enumeration, VarConstant
@@ -119,6 +119,7 @@ class BRLibToMarkdownApp:
         """Start the library to CHM conversion process.
         
         This method:
+        - Parses the library metadata from .lby file
         - Parses the library declaration files
         - Extracts functions, function blocks, structures, enumerations, and constants
         - Generates the CHM help file
@@ -131,15 +132,27 @@ class BRLibToMarkdownApp:
         lib_declaration_path = Path(folder_path_library).resolve() / select_lib.get_library_declaration_path()
         type_file_paths = select_lib.get_types_declaration_paths()
         var_file_paths = select_lib.get_variable_declaration_paths()
+        lby_file_path = select_lib.get_library_metadata_path()
+        
         structures: List[Structure] = []
         enumerations: List[Enumeration] = []
         constants: List[VarConstant] = []
 
-        
-
+        # Parse library declaration file (.fun)
         libFileParser = LibraryDeclarationFileParser()
         libFileParser.parse_fun_file(file_path=lib_declaration_path.as_posix())
         library = libFileParser.get_library()
+        
+        # Parse library metadata file (.lby) if it exists
+        if lby_file_path:
+            lby_full_path = Path(folder_path_library).resolve() / lby_file_path
+            try:
+                lbyParser = LibraryFileParser()
+                lbyParser.parse_lby_file(file_path=lby_full_path.as_posix())
+                lbyParser.update_library_object(library)
+            except Exception as e:
+                # If .lby parsing fails, continue with default values
+                print(f"Warning: Could not parse .lby file: {e}")
         
         # Parse all types files in library folder
         for file_path in type_file_paths:
@@ -175,6 +188,8 @@ class BRLibToMarkdownApp:
         messagebox.showinfo(
             title="Information",
             message=f"Library build successfully in {library_folder_path_build.as_posix()}\n"
+                    f"Library Version: {library.version}\n"
+                    f"Library Type: {library.type if library.type else 'N/A'}\n"
                     f"Functions: {num_functions}\n"
                     f"Function Blocks: {num_function_blocks}\n"
                     f"Structures: {num_structures}\n"

@@ -107,3 +107,15 @@ class SelectLibrary():
                 if name.endswith('.var'):
                     var_files.append(os.path.join(root, name))
         return var_files
+    
+    def get_library_metadata_path(self) -> str:
+        """Get the library metadata file (.lby) path.
+        
+        Returns:
+            Filename of the .lby metadata file, or None if not found.
+        """
+        lby_files = [each for each in os.listdir(self.library_path) if each.endswith('.lby')]
+        if len(lby_files) == 0:
+            return None
+        # Return first .lby file found (typically there's only one)
+        return lby_files[0]

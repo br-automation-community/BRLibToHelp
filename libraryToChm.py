@@ -154,9 +154,131 @@ class LibraryDeclarationToChm():
     <meta charset="UTF-8">
     <title>{html.escape(self.library.name)} - Library Documentation</title>
     <link rel="stylesheet" type="text/css" href="{css_path}">
+    <style>
+        /* Override the green border from the main CSS */
+        .info-table {{
+            border: 1px solid #000000 !important;
+        }}
+    </style>
 </head>
 <body>
     <h1>{html.escape(self.library.name)}</h1>
+    
+    <div class="section">
+        <h2>Library Information</h2>
+        <table class="parameter_tab info-table" border="1">
+            <tbody>
+                <tr>
+                    <td valign="TOP" class="parameter_tab"><strong>Library Name</strong></td>
+                    <td valign="TOP" class="parameter_tab">{html.escape(self.library.name)}</td>
+                </tr>
+                <tr>
+                    <td valign="TOP" class="parameter_tab"><strong>Version</strong></td>
+                    <td valign="TOP" class="parameter_tab">{html.escape(self.library.version)}</td>
+                </tr>"""
+        
+        # Add optional fields only if they exist
+        if self.library.type:
+            html_content += f"""
+                <tr>
+                    <td valign="TOP" class="parameter_tab"><strong>Type</strong></td>
+                    <td valign="TOP" class="parameter_tab">{html.escape(self.library.type)}</td>
+                </tr>"""
+        
+        if self.library.description:
+            html_content += f"""
+                <tr>
+                    <td valign="TOP" class="parameter_tab"><strong>Description</strong></td>
+                    <td valign="TOP" class="parameter_tab">{html.escape(self.library.description)}</td>
+                </tr>"""
+        
+        if self.library.header_file_name:
+            html_content += f"""
+                <tr>
+                    <td valign="TOP" class="parameter_tab"><strong>Header File</strong></td>
+                    <td valign="TOP" class="parameter_tab">{html.escape(self.library.header_file_name)}</td>
+                </tr>"""
+        
+        if self.library.file_version:
+            html_content += f"""
+                <tr>
+                    <td valign="TOP" class="parameter_tab"><strong>Automation Studio Version</strong></td>
+                    <td valign="TOP" class="parameter_tab">{html.escape(self.library.file_version)}</td>
+                </tr>"""
+        
+        html_content += """
+            </tbody>
+        </table>
+    </div>"""
+        
+        # Add dependencies section if there are any
+        if self.library.dependency_libraries and len(self.library.dependency_libraries) > 0:
+            html_content += """
+    
+    <div class="section">
+        <h2>Dependencies</h2>
+        <table class="parameter_tab info-table" border="1">
+            <thead>
+                <tr>
+                    <th class="parameter_tab">
+                        <div align="center"><b>Library Name</b></div>
+                    </th>
+                    <th class="parameter_tab">
+                        <div align="center"><b>From Version</b></div>
+                    </th>
+                    <th class="parameter_tab">
+                        <div align="center"><b>To Version</b></div>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>"""
+            
+            for dep in self.library.dependency_libraries:
+                obj_name = html.escape(dep.get('object_name', ''))
+                from_ver = html.escape(dep.get('from_version', ''))
+                to_ver = html.escape(dep.get('to_version', ''))
+                html_content += f"""
+                <tr>
+                    <td valign="TOP" class="parameter_tab">{obj_name}</td>
+                    <td valign="TOP" class="parameter_tab">{from_ver}</td>
+                    <td valign="TOP" class="parameter_tab">{to_ver}</td>
+                </tr>"""
+            
+            html_content += """
+            </tbody>
+        </table>
+    </div>"""
+        
+        # Add statistics section
+        html_content += f"""
+    
+    <div class="section">
+        <h2>Library Statistics</h2>
+        <table class="parameter_tab info-table" border="1">
+            <tbody>
+                <tr>
+                    <td valign="TOP" class="parameter_tab"><strong>Functions</strong></td>
+                    <td valign="TOP" class="parameter_tab">{len(self.library.functions)}</td>
+                </tr>
+                <tr>
+                    <td valign="TOP" class="parameter_tab"><strong>Function Blocks</strong></td>
+                    <td valign="TOP" class="parameter_tab">{len(self.library.function_blocks)}</td>
+                </tr>
+                <tr>
+                    <td valign="TOP" class="parameter_tab"><strong>Structures</strong></td>
+                    <td valign="TOP" class="parameter_tab">{len(self.library.structures)}</td>
+                </tr>
+                <tr>
+                    <td valign="TOP" class="parameter_tab"><strong>Enumerations</strong></td>
+                    <td valign="TOP" class="parameter_tab">{len(self.library.enumerations)}</td>
+                </tr>
+                <tr>
+                    <td valign="TOP" class="parameter_tab"><strong>Constants</strong></td>
+                    <td valign="TOP" class="parameter_tab">{len(self.library.constants)}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
     
     <div class="section">
         <h2>Library Contents</h2>
