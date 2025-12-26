@@ -2,15 +2,6 @@
 
 This guide demonstrates how to use BRLibToHelp to generate CHM help files for your B&R Automation Studio libraries.
 
-## Table of Contents
-- [Running the Application](#running-the-application)
-- [Generating CHM Help Files](#generating-chm-help-files)
-- [Installing the Help File](#installing-the-help-file)
-- [Using F1 Context Help](#using-f1-context-help)
-- [Modifying and Rebuilding](#modifying-and-rebuilding)
-
----
-
 ## Running the Application
 
 ### Launching BRLibToHelp
