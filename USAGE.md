@@ -80,15 +80,4 @@ You can add special CSS classes to HTML files for enhanced documentation:
 
 ---
 
-## Summary
-
-You've learned how to:
-- ✅ Generate CHM help files from B&R libraries
-- ✅ Install help files for F1 integration
-- ✅ Use context-sensitive help in Automation Studio
-- ✅ Edit and rebuild documentation
-- ✅ Troubleshoot common issues
-
----
-
 **Need Help?** Open an issue on GitHub or consult the B&R Automation Studio documentation.
