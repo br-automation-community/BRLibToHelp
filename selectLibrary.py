@@ -7,6 +7,45 @@ from pathlib import Path
 import tkinter as tk
 from tkinter import filedialog
 import os
+from typing import Tuple
+
+
+def is_valid_library(library_path: str) -> Tuple[bool, str]:
+    """Check if the given path contains a valid B&R library.
+    
+    Args:
+        library_path: Path to check for library validity.
+        
+    Returns:
+        Tuple of (is_valid, error_message):
+        - is_valid: True if path contains a valid library
+        - error_message: Description of the issue if not valid, empty string if valid
+    """
+    if not library_path or library_path == "":
+        return False, "No folder selected"
+    
+    path = Path(library_path)
+    if not path.exists():
+        return False, "Selected folder does not exist"
+    
+    if not path.is_dir():
+        return False, "Selected path is not a folder"
+    
+    # Check for .fun file (required for B&R library)
+    try:
+        fun_files = [f for f in os.listdir(library_path) if f.endswith('.fun')]
+    except PermissionError:
+        return False, "Cannot access folder: Permission denied"
+    except Exception as e:
+        return False, f"Error reading folder: {str(e)}"
+    
+    if len(fun_files) == 0:
+        return False, "Not a valid B&R library: No .fun declaration file found.\n\nA valid B&R library must contain:\n- At least one .fun file (function declarations)\n- Optional .typ files (type definitions)\n- Optional .var files (variable/constant declarations)\n- Optional .lby file (library metadata)"
+    
+    if len(fun_files) > 1:
+        return False, "Invalid library structure: Multiple .fun files found.\n\nA B&R library can only contain one .fun declaration file."
+    
+    return True, ""
 
 class SelectLibrary():
     """Helper class to select and validate B&R library directories.

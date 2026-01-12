@@ -349,10 +349,14 @@ REM Note: hhc.exe returns 1 on success, so we check for the output file
 if exist "{chm_filename}" (
     echo.
     echo Success! CHM file created: {chm_filename}
+    echo.
+    pause
     exit /b 0
 ) else (
     echo.
     echo Error: CHM file was not created
+    echo.
+    pause
     exit /b 1
 )
 """
@@ -1084,6 +1088,40 @@ if exist "{chm_filename}" (
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Constants</title>
     <link rel="stylesheet" type="text/css" href="{css_relative_path}">
+    <script>
+        // Select text when navigating to an anchor
+        window.addEventListener('DOMContentLoaded', function() {{
+            function selectTextById(id) {{
+                var element = document.getElementById(id);
+                if (element) {{
+                    var nameCell = element.querySelector('td:first-child');
+                    if (nameCell && window.getSelection) {{
+                        var range = document.createRange();
+                        range.selectNodeContents(nameCell);
+                        var selection = window.getSelection();
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                        // Scroll element into view
+                        element.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
+                    }}
+                }}
+            }}
+            
+            // Check if there's a hash in the URL on page load
+            if (window.location.hash) {{
+                var id = window.location.hash.substring(1);
+                setTimeout(function() {{ selectTextById(id); }}, 100);
+            }}
+            
+            // Listen for hash changes (when clicking links within the page)
+            window.addEventListener('hashchange', function() {{
+                if (window.location.hash) {{
+                    var id = window.location.hash.substring(1);
+                    selectTextById(id);
+                }}
+            }});
+        }});
+    </script>
 </head>
 <body>
     <h1>Constants</h1>
@@ -1113,7 +1151,8 @@ if exist "{chm_filename}" (
         
         for const in constants:
             const_type = html.escape(str(const.type))
-            value = html.escape(const.default_value) if const.default_value else ""
+            # Apply constant linking to the value (in case it references other constants)
+            value = self.link_constants_in_text(const.default_value, "../../") if const.default_value else ""
             comment = html.escape(const.comment1) if const.comment1 else ""
             # Add an anchor for each constant so links can jump to it
             html_content += f"""            <tr id="{html.escape(const.name)}">
@@ -1361,6 +1400,15 @@ Title={self.library.name} - Library Documentation
         </OBJECT>
 """
         
+        # Add constants to index so users can find them via Index tab
+        for const in self.library.constants:
+            if const is not None:
+                hhk_content += f"""    <LI> <OBJECT type="text/sitemap">
+        <param name="Name" value="{html.escape(const.name)}">
+        <param name="Local" value="DataTypes/Constants/Constants.html#{html.escape(const.name)}">
+        </OBJECT>
+"""
+        
         hhk_content += """</UL>
 </BODY></HTML>
 """
@@ -1421,9 +1469,7 @@ Title={self.library.name} - Library Documentation
                         f"   Source: C:\\Program Files (x86)\\HTML Help Workshop\\*.dll\n"
                         f"   Destination: {hhc_dir}\\\n\n"
                         f"You may be missing some of these DLLs:\n"
-                        f"   itcc.dll, hhcout.dll, hhkout.dll, itircl.dll, hha.dll,\n"
-                        f"   advpack.dll, cnvcnt.dll, cnvtoc.dll, gencnv.dll, navout.dll,\n"
-                        f"   spcom.dll, sprbuild.dll, spredit.dll, sprfile.dll, sprlog.dll\n\n"
+                        f"   itcc.dll, hhcout.dll, hhkout.dll, hha.dll\n\n"
                         f"STDOUT: {result.stdout}\n"
                         f"STDERR: {result.stderr}"
                     )
