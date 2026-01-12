@@ -234,9 +234,9 @@ class LibraryDeclarationToChm():
             <tbody>"""
             
             for dep in self.library.dependency_libraries:
-                obj_name = html.escape(dep.get('object_name', ''))
-                from_ver = html.escape(dep.get('from_version', ''))
-                to_ver = html.escape(dep.get('to_version', ''))
+                obj_name = html.escape(str(dep.get('object_name', '')))
+                from_ver = html.escape(str(dep.get('from_version', '')))
+                to_ver = html.escape(str(dep.get('to_version', '')))
                 html_content += f"""
                 <tr>
                     <td valign="TOP" class="parameter_tab">{obj_name}</td>
