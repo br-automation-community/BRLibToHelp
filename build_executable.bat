@@ -28,28 +28,39 @@ if errorlevel 1 (
 )
 
 echo.
+echo Generating version info file...
+python generate_version_info.py
+if errorlevel 1 (
+    echo ERROR: Failed to generate version info!
+    pause
+    exit /b 1
+)
+
+echo.
 echo Building executable with PyInstaller...
 echo This may take a few minutes...
 echo.
 
-REM Check if icon file exists and prepare parameters
-set ICON_PARAM=
-set ADD_ICON_DATA=
+REM Check if icon file exists
 if exist "icon.ico" (
     echo Using custom icon: icon.ico
-    set ICON_PARAM=--icon=icon.ico
-    set ADD_ICON_DATA=--add-data "icon.ico;."
 ) else (
     echo No icon file found. Building without custom icon.
     echo To add an icon, place icon.ico in the project root directory.
 )
 
+REM Build with console enabled but hidden late (for CLI support)
 python -m PyInstaller --clean --noconfirm ^
     --name=BRLibToHelp ^
     --onefile ^
-    --windowed ^
+    --console ^
+    --hide-console hide-late ^
     --add-data "css;css" ^
     --add-data "bin;bin" ^
+    --add-data "version.py;." ^
+    --add-data "icon.ico;." ^
+    --icon=icon.ico ^
+    --version-file=version_info.txt ^
     %ADD_ICON_DATA% ^
     %ICON_PARAM% ^
     main.py

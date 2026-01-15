@@ -25,13 +25,17 @@ class LibraryDeclarationToChm():
     organization, and CHM compilation using Microsoft HTML Help Workshop.
     """
     
-    def __init__(self, library: Library) -> None:
+    def __init__(self, library: Library, keep_sources: bool = True, use_help_folder: bool = False) -> None:
         """Initialize the CHM generator.
         
         Args:
             library: Parsed Library object containing all library elements.
+            keep_sources: If True, keep HTML source files; if False, delete them after CHM generation.
+            use_help_folder: If True, places CHM directly in build_folder (for <library>/Help/ usage).
         """
         self.library: Library = library
+        self.keep_sources: bool = keep_sources
+        self.use_help_folder: bool = use_help_folder
         self.hhc_compiler_path = get_resource_path("bin/hhc.exe")
         self.html_generator = FunctionBlockHtmlGenerator()
 
@@ -44,8 +48,15 @@ class LibraryDeclarationToChm():
         - Gen/: General documentation (index page)
         - Samples/: Sample code (optional)
         """
-        # Build folder structure: build/<LibraryName>/chm/
-        path_build_folder = Path(build_folder) / self.library.name / "chm"
+        # Build folder structure depends on mode
+        if self.use_help_folder:
+            # Help folder mode: place CHM directly in build_folder (which is <library>/Help/)
+            # Create a temporary subdirectory for build artifacts
+            path_build_folder = Path(build_folder) / f"_temp_{self.library.name}"
+        else:
+            # Normal mode: build/<LibraryName>/chm/
+            path_build_folder = Path(build_folder) / self.library.name / "chm"
+        
         if not path_build_folder.exists():
             path_build_folder.mkdir(parents=True)
         
@@ -138,6 +149,25 @@ class LibraryDeclarationToChm():
         
         # Compile CHM
         chm_file = self.compile_chm(hhp_file, path_build_folder)
+        
+        # Handle Help folder mode
+        if self.use_help_folder:
+            # Move CHM to Help folder (parent of temp folder)
+            help_folder = Path(build_folder)
+            final_chm_path = help_folder / f"Lib{self.library.name}.chm"
+            
+            # Copy CHM to Help folder
+            import shutil
+            shutil.copy2(chm_file, final_chm_path)
+            
+            # Delete entire temp folder (everything)
+            shutil.rmtree(path_build_folder)
+            
+            return str(final_chm_path)
+        
+        # Cleanup HTML sources if requested (normal mode only)
+        if not self.keep_sources:
+            self._cleanup_sources(path_build_folder)
         
         return str(chm_file)
 
@@ -1487,3 +1517,50 @@ Title={self.library.name} - Library Documentation
             raise
         except Exception as e:
             raise RuntimeError(f"Error compiling CHM: {str(e)}")
+
+    def _cleanup_sources(self, build_folder: Path) -> None:
+        """Clean up HTML source files after CHM generation.
+        
+        Removes HTML files, CSS, source directories, and compiler files, keeping only:
+        - The compiled .chm file
+        
+        Args:
+            build_folder: Path to the build folder containing generated files
+        """
+        try:
+            # Remove HTML source directories
+            dirs_to_remove = ['Gen', 'FBKs', 'DataTypes', 'Samples']
+            for dir_name in dirs_to_remove:
+                dir_path = build_folder / dir_name
+                if dir_path.exists() and dir_path.is_dir():
+                    shutil.rmtree(dir_path)
+            
+            # Remove CSS file
+            css_file = build_folder / 'style.css'
+            if css_file.exists():
+                css_file.unlink()
+            
+            # Remove HHP, HHC, HHK project files
+            for ext in ['*.hhp', '*.hhc', '*.hhk']:
+                for file in build_folder.glob(ext):
+                    file.unlink()
+            
+            # Remove hhc.exe compiler
+            hhc_file = build_folder / 'hhc.exe'
+            if hhc_file.exists():
+                hhc_file.unlink()
+            
+            # Remove DLL files
+            for dll_file in build_folder.glob('*.dll'):
+                dll_file.unlink()
+            
+            # Remove .bat rebuild script
+            for bat_file in build_folder.glob('*.bat'):
+                bat_file.unlink()
+            
+            # Note: We keep only the .chm file
+            
+        except Exception as e:
+            # Non-critical error - don't fail the whole process
+            # Just log or ignore cleanup errors
+            pass

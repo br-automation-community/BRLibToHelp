@@ -8,14 +8,12 @@ This module provides a Tkinter-based graphical user interface that allows users 
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from pathlib import Path
-from typing import List
-from parser import LibraryDeclarationFileParser, TypeFileParser, VarFileParser, LibraryFileParser
-from selectLibrary import SelectLibrary, is_valid_library
-from libraryToChm import LibraryDeclarationToChm
-from datatypes import Structure, Enumeration, VarConstant
+from selectLibrary import is_valid_library
 import subprocess
 from os.path import normpath
 from utils import get_resource_path
+from core import LibraryProcessor
+from version import __version__
 
 class BRLibToMarkdownApp:
     """Main application class for the B&R Library to CHM converter.
@@ -31,7 +29,7 @@ class BRLibToMarkdownApp:
             root: Tkinter root window.
         """
         self.root = root
-        self.root.title("B&R Lib to CHM Help")
+        self.root.title(f"B&R Lib to CHM Help - v{__version__}")
         
         # Set window icon if available
         try:
@@ -78,6 +76,10 @@ class BRLibToMarkdownApp:
         # Quit button
         self.quit_button = tk.Button(root, text="Quit", command=root.quit)
         self.quit_button.grid(row=3, column=0, columnspan=3, pady=10)
+        
+        # Version label at the bottom
+        self.version_label = tk.Label(root, text=f"Version {__version__}", fg="gray", font=("Arial", 8))
+        self.version_label.grid(row=4, column=0, columnspan=3, pady=(0, 10))
 
     def browse_folder_library(self):
         """Open a directory browser dialog to select the library folder."""
@@ -148,147 +150,46 @@ class BRLibToMarkdownApp:
     def start(self):
         """Start the library to CHM conversion process.
         
-        This method:
-        - Parses the library metadata from .lby file
-        - Parses the library declaration files
-        - Extracts functions, function blocks, structures, enumerations, and constants
-        - Generates the CHM help file
-        - Displays a summary and optionally opens the build folder
+        This method uses the core LibraryProcessor to handle all business logic,
+        then displays the results in the GUI.
         """
         folder_path_library = self.folder_path_library_entry.get()
         folder_path_build = self.folder_path_build_entry.get()
         
-        try:
-            select_lib = SelectLibrary(folder_path_library)
-        except FileNotFoundError:
+        # Create processor (GUI always keeps sources)
+        processor = LibraryProcessor(
+            library_path=folder_path_library,
+            output_path=folder_path_build,
+            keep_sources=True
+        )
+        
+        # Process the library
+        result = processor.process()
+        
+        # Handle errors
+        if not result['success']:
             messagebox.showerror(
                 title="Error",
-                message="Library folder not found or no longer accessible."
-            )
-            return
-        except Exception as e:
-            messagebox.showerror(
-                title="Error",
-                message=f"Error accessing library folder:\n{str(e)}"
+                message=result['error']
             )
             return
         
-        try:
-            lib_declaration_path = Path(folder_path_library).resolve() / select_lib.get_library_declaration_path()
-            type_file_paths = select_lib.get_types_declaration_paths()
-            var_file_paths = select_lib.get_variable_declaration_paths()
-            lby_file_path = select_lib.get_library_metadata_path()
-        except Exception as e:
-            messagebox.showerror(
-                title="Error Reading Library Files",
-                message=f"Could not read library declaration files:\n{str(e)}"
-            )
-            return
-        
-        structures: List[Structure] = []
-        enumerations: List[Enumeration] = []
-        constants: List[VarConstant] = []
-
-        # Parse library declaration file (.fun)
-        try:
-            libFileParser = LibraryDeclarationFileParser()
-            libFileParser.parse_fun_file(file_path=lib_declaration_path.as_posix())
-            library = libFileParser.get_library()
-        except FileNotFoundError:
-            messagebox.showerror(
-                title="Parsing Error",
-                message=f"Library declaration file not found:\n{lib_declaration_path}"
-            )
-            return
-        except Exception as e:
-            messagebox.showerror(
-                title="Parsing Error",
-                message=f"Error parsing library declaration file (.fun):\n{str(e)}"
-            )
-            return
-        
-        # Parse library metadata file (.lby) if it exists
-        if lby_file_path:
-            lby_full_path = Path(folder_path_library).resolve() / lby_file_path
-            try:
-                lbyParser = LibraryFileParser()
-                lbyParser.parse_lby_file(file_path=lby_full_path.as_posix())
-                lbyParser.update_library_object(library)
-            except Exception as e:
-                # If .lby parsing fails, continue with default values
-                messagebox.showwarning(
-                    title="Warning",
-                    message=f"Could not parse library metadata file (.lby):\n{str(e)}\n\nContinuing with default metadata."
-                )
-        
-        # Parse all types files in library folder
-        try:
-            for file_path in type_file_paths:
-                typeFileParser = TypeFileParser()
-                typeFileParser.parse_typ_file(file_path=file_path)
-                structures.extend(typeFileParser.get_structures())
-                enumerations.extend(typeFileParser.get_enumerations())
-        except Exception as e:
-            messagebox.showerror(
-                title="Parsing Error",
-                message=f"Error parsing type files (.typ):\n{str(e)}\n\nContinuing without structures and enumerations."
-            )
-            # Continue without structures/enumerations if parsing fails
-            
-        library.structures = structures
-        library.enumerations = enumerations
-        
-        # Parse all variable files in library folder
-        try:
-            for file_path in var_file_paths:
-                varFileParser = VarFileParser()
-                varFileParser.parse_var_file(file_path=file_path)
-                constants.extend(varFileParser.get_constants())
-        except Exception as e:
-            messagebox.showerror(
-                title="Parsing Error",
-                message=f"Error parsing variable files (.var):\n{str(e)}\n\nContinuing without constants."
-            )
-            # Continue without constants if parsing fails
-
-        library.constants = constants
-
-        # Generate CHM file of the library
-        try:
-            libraryToChm = LibraryDeclarationToChm(library=library)
-            libraryToChm.generate_library_chm(build_folder=folder_path_build)
-        except PermissionError:
-            messagebox.showerror(
-                title="Build Error",
-                message=f"Permission denied when writing to build folder:\n{folder_path_build}\n\nPlease check folder permissions."
-            )
-            return
-        except Exception as e:
-            messagebox.showerror(
-                title="Build Error",
-                message=f"Error generating CHM help file:\n{str(e)}"
-            )
-            return
-
+        # Success - show summary
+        library = result['library']
+        stats = result['stats']
+        chm_path = result['chm_path']
         library_folder_path_build = Path(folder_path_build).resolve() / library.name
-
-        # Show infos (number of functions / function blocks, structures, enumerations, constants) in message box
-        num_functions = len(library.functions)
-        num_function_blocks = len(library.function_blocks)
-        num_structures = len(library.structures)
-        num_enumerations = len(library.enumerations)
-        num_constants = len(library.constants)
 
         messagebox.showinfo(
             title="Information",
-            message=f"Library build successfully in {library_folder_path_build.as_posix()}\n"
-                    f"Library Version: {library.version}\n"
-                    f"Library Type: {library.type if library.type else 'N/A'}\n"
-                    f"Functions: {num_functions}\n"
-                    f"Function Blocks: {num_function_blocks}\n"
-                    f"Structures: {num_structures}\n"
-                    f"Enumerations: {num_enumerations}\n"
-                    f"Constants: {num_constants}"
+            message=f"Library build successfully in {library_folder_path_build.as_posix()}\\n"
+                    f"Library Version: {library.version}\\n"
+                    f"Library Type: {library.type if library.type else 'N/A'}\\n"
+                    f"Functions: {stats['functions']}\\n"
+                    f"Function Blocks: {stats['function_blocks']}\\n"
+                    f"Structures: {stats['structures']}\\n"
+                    f"Enumerations: {stats['enumerations']}\\n"
+                    f"Constants: {stats['constants']}"
         )
 
         open_build = messagebox.askyesno(
@@ -305,7 +206,7 @@ class BRLibToMarkdownApp:
         except Exception as e:
             messagebox.showerror(
                 title="Error",
-                message=f"Could not open build folder:\n{str(e)}"
+                message=f"Could not open build folder:\\n{str(e)}"
             )
 
 

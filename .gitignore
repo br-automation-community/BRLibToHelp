@@ -152,3 +152,8 @@ VERSION.txt
 version.rc
 
 /chrome-win
+
+
+# Custom
+test_cli_errors.ps1
+version_info.txt

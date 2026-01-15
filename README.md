@@ -13,7 +13,7 @@ It handles IEC and ANSI C libraries.
 
 # Getting Started
 
-## Option 1: Use the Executable (Recommended)
+## Option 1: Use the Executable as GUI (Recommended)
 
 A pre-built executable is available in the [Releases](../../releases) section. No Python installation required!
 
@@ -31,6 +31,33 @@ A pre-built executable is available in the [Releases](../../releases) section. N
 4.  Activate the virtual environment `./.venv/Scripts/activate`
 5.  Install dependencies `pip install -r ./requirements.txt`
 6.  Run the application: `python main.py`
+
+## Option 3: Command-Line Interface (CLI)
+
+For automation, CI/CD pipelines, and scripting:
+
+```bash
+# Help Folder Mode (recommended for F1 integration)
+# Places CHM directly in <library>/Help/
+BRLibToHelp.exe --library "C:\Path\To\Library"
+
+# Custom Output Mode
+BRLibToHelp.exe --library "C:\MyLib" --output "C:\Build"
+
+# Keep HTML sources (only with --output)
+BRLibToHelp.exe -l "C:\MyLib" -o "C:\Build" --keep-sources
+
+# Verbose output for debugging
+BRLibToHelp.exe -l "C:\MyLib" -v
+```
+
+**📖 For complete CLI documentation, see [CLI Usage Guide](CLI_USAGE.md)**
+
+### Key Features
+- ✅ **Help Folder Mode**: Places CHM directly in `<library>/Help/` for immediate F1 integration
+- ✅ **Custom Output Mode**: Generate to any folder with optional source retention
+- ✅ Proper exit codes for error handling
+- ✅ Clean output mode (default) or verbose mode (--verbose)
 
 # Using the Generated CHM Help File
 

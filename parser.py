@@ -378,25 +378,47 @@ class TypeFileParser(Parser):
             definitions = self.extract_type_definitions_improved(block)
             
             for definition in definitions:
+                # Calculate line numbers for better error reporting
+                start_pos = content.find(definition)
+                if start_pos != -1:
+                    start_line = content[:start_pos].count('\n') + 1
+                    end_line = start_line + definition.count('\n')
+                else:
+                    start_line = end_line = 0
+                
+                # Determine the type by checking the actual syntax, not just keywords in comments
+                # Look for the pattern: NAME : STRUCT or NAME : (
+                stripped_def = definition.strip()
+                
+                # Check for structure: NAME : STRUCT
+                is_struct = re.search(r'^\w+\s*:\s*STRUCT\s', stripped_def, re.IGNORECASE)
+                # Check for enumeration: NAME : (
+                is_enum = re.search(r'^\w+\s*:\s*\(', stripped_def)
+                
                 # Try to parse as structure first
-                if 'STRUCT' in definition.upper():
+                if is_struct:
                     try:
                         struct = self.struct_parser.parse(definition)
                         self.structures.append(struct)
                         continue
                     except ValueError as e:
-                        print(f"Failed to parse structure: {e}")
+                        if start_line > 0:
+                            print(f"[WARNING] Failed to parse structure in file '{file_path}' (lines {start_line}-{end_line}): {e}")
+                        else:
+                            print(f"[WARNING] Failed to parse structure in file '{file_path}': {e}")
                         pass
                 
                 # Try to parse as enumeration
-                # Check if it looks like an enumeration (has parentheses for values)
-                if ':' in definition and '(' in definition:
+                elif is_enum:
                     try:
                         enum = self.enum_parser.parse(definition)
                         self.enumerations.append(enum)
                         continue
                     except ValueError as e:
-                        print(f"Failed to parse enumeration: {e}")
+                        if start_line > 0:
+                            print(f"[WARNING] Failed to parse enumeration in file '{file_path}' (lines {start_line}-{end_line}): {e}")
+                        else:
+                            print(f"[WARNING] Failed to parse enumeration in file '{file_path}': {e}")
                         pass
         
         return self.structures, self.enumerations
