@@ -182,13 +182,13 @@ class BRLibToMarkdownApp:
 
         messagebox.showinfo(
             title="Information",
-            message=f"Library build successfully in {library_folder_path_build.as_posix()}\\n"
-                    f"Library Version: {library.version}\\n"
-                    f"Library Type: {library.type if library.type else 'N/A'}\\n"
-                    f"Functions: {stats['functions']}\\n"
-                    f"Function Blocks: {stats['function_blocks']}\\n"
-                    f"Structures: {stats['structures']}\\n"
-                    f"Enumerations: {stats['enumerations']}\\n"
+            message=f"Library build successfully in {library_folder_path_build.as_posix()}\n"
+                    f"Library Version: {library.version}\n"
+                    f"Library Type: {library.type if library.type else 'N/A'}\n"
+                    f"Functions: {stats['functions']}\n"
+                    f"Function Blocks: {stats['function_blocks']}\n"
+                    f"Structures: {stats['structures']}\n"
+                    f"Enumerations: {stats['enumerations']}\n"
                     f"Constants: {stats['constants']}"
         )
 
