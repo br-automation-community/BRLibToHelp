@@ -2,6 +2,44 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.2] - 2026-02-02
+
+### Added
+- **Range-Constrained Type Support** 🎯
+  - New `RangeType` dataclass for types with range constraints (e.g., `UDINT(1..9)`, `INT(MIN..MAX)`)
+  - Full parsing support in structures, function blocks, and functions
+  - Proper display in HTML documentation with format `TYPE(lower..upper)`
+  - Support for both numeric literals and named constants as range bounds
+
+- **Automatic Constant Hyperlinking** 🔗
+  - Constants used in type definitions now automatically link to their definitions
+  - Range types: `UDINT(MIN_VALUE..MAX_VALUE)` → clickable links to constants
+  - Array dimensions: `ARRAY[0..MAX_SIZE]` → already supported, now consistent
+  - String lengths: `STRING[MAX_LENGTH]` → clickable link when using constants
+  - Links point to constant definitions in DataTypes/Constants section
+
+### Changed
+- **Enhanced Type Parser**
+  - Updated variable declaration regex to capture parentheses in type names
+  - Pattern now includes `()` characters: `[\w\s\[\]\.,\(\)]+`
+  - Prevents skipping of range-constrained variable declarations
+
+- **Improved Type Link Generation**
+  - Extended `get_type_link()` method to detect and process range types
+  - Automatic constant name extraction and link generation in range expressions
+  - Support for mixed constant and literal bounds (e.g., `INT(0..MAX)`)
+
+### Fixed
+- Variables with range-constrained types no longer ignored in structures (Issue #5)
+- Range type syntax now properly displayed in documentation (Issue #6)
+- Constants in range bounds now properly hyperlinked (Issue #7)
+
+
+## [1.0.1] - 2026-01-20
+
+### Fixed
+- Update message formatting in the library build success notification
+
 ## [1.0.0] - 2026-01-15
 
 ### Added
