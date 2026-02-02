@@ -45,17 +45,18 @@ class Parser:
         upper_bound = int(upper_bound) if upper_bound.isdigit() else upper_bound.strip()
         return ArrayDimension(lower_bound=lower_bound, upper_bound=upper_bound, is_constant_lower=is_constant_lower, is_constant_upper=is_constant_upper)
 
-    def parse_type(self, type_str: str) -> Union[BasicType, ArrayType, StringType]:
-        """Parse a type string into BasicType, ArrayType, or StringType.
+    def parse_type(self, type_str: str) -> Union[BasicType, ArrayType, StringType, RangeType]:
+        """Parse a type string into BasicType, ArrayType, StringType, or RangeType.
         
         Args:
-            type_str: Type string (e.g., 'INT', 'ARRAY[0..10] OF REAL', 'STRING[80]').
+            type_str: Type string (e.g., 'INT', 'ARRAY[0..10] OF REAL', 'STRING[80]', 'UDINT(1..9)').
             
         Returns:
-            Appropriate type object (BasicType, ArrayType, or StringType).
+            Appropriate type object (BasicType, ArrayType, StringType, or RangeType).
         """
         array_pattern = re.compile(r'ARRAY\s*\[(.*?)\]\s*OF\s*(\w+)')
         string_pattern = re.compile(r'STRING\s*\[(\w+)\]')
+        range_pattern = re.compile(r'(\w+)\s*\(\s*(\w+)\s*\.\.\s*(\w+)\s*\)')
         
         if array_match := array_pattern.match(type_str):
             dimensions_str, base_type = array_match.groups()
@@ -67,6 +68,20 @@ class Parser:
             is_constant_length = not length_str.isdigit()
             length = int(length_str) if length_str.isdigit() else length_str
             return StringType(length=length, is_constant=is_constant_length)
+        
+        if range_match := range_pattern.match(type_str):
+            base_type, lower_str, upper_str = range_match.groups()
+            is_constant_lower = not lower_str.isdigit()
+            is_constant_upper = not upper_str.isdigit()
+            lower_bound = int(lower_str) if lower_str.isdigit() else lower_str.strip()
+            upper_bound = int(upper_str) if upper_str.isdigit() else upper_str.strip()
+            return RangeType(
+                base_type=base_type,
+                lower_bound=lower_bound,
+                upper_bound=upper_bound,
+                is_constant_lower=is_constant_lower,
+                is_constant_upper=is_constant_upper
+            )
         
         return BasicType(type=type_str)
 
@@ -84,7 +99,8 @@ class Parser:
         variables = []
         # Pattern that handles both regular variables and constants with default values
         # Matches: NAME : TYPE; or NAME : TYPE := VALUE;
-        var_pattern = re.compile(r'\s*(\w+)\s*:\s*(\{.*?\}\s*)?(REFERENCE TO )?([\w\s\[\]\.,]+?)(?:\s*:=\s*([\w\.\#\-]+))?\s*;(?:\s*\(\*(.*?)\*\))?(?:\s*\(\*(.*?)\*\))?(?:\s*\(\*(.*?)\*\))?', re.DOTALL)
+        # Now also handles range types like UDINT(1..9) by including () in the type pattern
+        var_pattern = re.compile(r'\s*(\w+)\s*:\s*(\{.*?\}\s*)?(REFERENCE TO )?([\w\s\[\]\.,\(\)]+?)(?:\s*:=\s*([\w\.\#\-]+))?\s*;(?:\s*\(\*(.*?)\*\))?(?:\s*\(\*(.*?)\*\))?(?:\s*\(\*(.*?)\*\))?', re.DOTALL)
         for match in var_pattern.finditer(section):
             name, redundancy_info, ref, type_str, default_value, comment1, comment2, comment3 = match.groups()
             is_reference = ref is not None

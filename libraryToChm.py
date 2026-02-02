@@ -15,6 +15,7 @@ import html
 import shutil
 from htmlGenerator import FunctionBlockHtmlGenerator
 from utils import get_resource_path
+import re
 
 
 class LibraryDeclarationToChm():
@@ -178,6 +179,9 @@ class LibraryDeclarationToChm():
         # Check if there are any datatypes
         has_datatypes = (self.library.structures or self.library.enumerations or self.library.constants)
         
+        # Check if there are any functions or function blocks
+        has_functions_or_fbs = (self.library.functions or self.library.function_blocks)
+        
         html_content = f"""<!DOCTYPE html>
 <html>
 <head>
@@ -313,7 +317,9 @@ class LibraryDeclarationToChm():
     <div class="section">
         <h2>Library Contents</h2>
         <ul>
-            <li><a href="../FBKs/FBKs.html">Functions and Function Blocks</a></li>"""
+            """
+        if has_functions_or_fbs:
+            """<li><a href="../FBKs/FBKs.html">Functions and Function Blocks</a></li>"""
         
         if has_datatypes:
             html_content += """
@@ -495,6 +501,54 @@ if exist "{chm_filename}" (
                 # No OF found, the whole thing might be the type
                 prefix = prefix + "Array " + array_dimensions + " "
                 base_type = remaining.strip()
+        
+        # Handle STRING[length] types where length can be a constant
+        string_pattern = re.compile(r'^STRING\s*\[(.+?)\]$', re.IGNORECASE)
+        string_match = string_pattern.match(base_type)
+        if string_match:
+            length_expr = string_match.group(1)
+            # Process constants in the length expression
+            length_expr_with_links = self.link_constants_in_text(length_expr, relative_path)
+            return f"{prefix}STRING[{length_expr_with_links}]{html.escape(suffix)}"
+        
+        # Handle range types like UDINT(1..9) or INT(MIN..MAX)
+        range_pattern = re.compile(r'^(\w+)\s*\((.+)\)$')
+        range_match = range_pattern.match(base_type)
+        if range_match:
+            range_base_type = range_match.group(1)
+            range_expr = range_match.group(2)
+            
+            # Process constants in the range expression
+            range_expr_with_links = self.link_constants_in_text(range_expr, relative_path)
+            
+            # Reconstruct the type with linked constants
+            base_type = f"{html.escape(range_base_type)}({range_expr_with_links})"
+            
+            # Check if the base type (before the range) is user-defined
+            is_structure = False
+            is_enumeration = False
+            
+            for struct in self.library.structures:
+                if struct.name == range_base_type:
+                    is_structure = True
+                    break
+            
+            if not is_structure:
+                for enum in self.library.enumerations:
+                    if enum.name == range_base_type:
+                        is_enumeration = True
+                        break
+            
+            # If the base type is user-defined, create a link for it
+            if is_structure:
+                link = f"{relative_path}DataTypes/Structures/{html.escape(range_base_type)}.html"
+                return f"{prefix}<a href=\"{link}\">{html.escape(range_base_type)}</a>({range_expr_with_links}){html.escape(suffix)}"
+            elif is_enumeration:
+                link = f"{relative_path}DataTypes/Enumerations/{html.escape(range_base_type)}.html"
+                return f"{prefix}<a href=\"{link}\">{html.escape(range_base_type)}</a>({range_expr_with_links}){html.escape(suffix)}"
+            else:
+                # Base type is not user-defined, just return with range
+                return f"{prefix}{base_type}{html.escape(suffix)}"
         
         # Check if base type is user-defined
         is_structure = False
@@ -893,7 +947,7 @@ if exist "{chm_filename}" (
             member_count = len(struct.members)
             html_content += f"""            <tr>
                 <td valign="TOP" class="parameter_tab"><a href="{html.escape(struct.name)}.html">{html.escape(struct.name)}</a></td>
-                <td valign="TOP" class="parameter_tab"></td>
+                <td valign="TOP" class="parameter_tab">{struct.description if struct.description else ""}</td>
             </tr>
 """
         
@@ -1005,6 +1059,9 @@ if exist "{chm_filename}" (
                 <th class="parameter_tab">
                     <div align="center"><b>Default Value</b></div>
                 </th>
+                <th class="parameter_tab">
+                    <div align="center"><b>Description</b></div>
+                </th>
             </tr>
         </thead>
         <tbody>
@@ -1016,6 +1073,7 @@ if exist "{chm_filename}" (
             html_content += f"""            <tr>
                 <td valign="TOP" class="parameter_tab"><a href="{html.escape(enum.name)}.html">{html.escape(enum.name)}</a></td>
                 <td valign="TOP" class="parameter_tab">{default_val}</td>
+                <td valign="TOP" class="parameter_tab">{html.escape(enum.description) if enum.description else ""}</td>
             </tr>
 """
         

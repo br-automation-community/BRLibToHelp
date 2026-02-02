@@ -6,6 +6,6 @@ This file contains the version number used across the entire application:
 - PyInstaller executable metadata
 """
 
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 __author__ = "B&R Automation Community"
 __description__ = "Generate CHM help files from B&R Automation Studio libraries"

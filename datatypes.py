@@ -73,12 +73,33 @@ class StringType:
     
 
 @dataclass
+class RangeType:
+    """Represents a type with a range constraint (e.g., UDINT(1..9)).
+    
+    Attributes:
+        base_type: The base data type (e.g., UDINT, INT)
+        lower_bound: Lower bound of the range (can be int or constant name)
+        upper_bound: Upper bound of the range (can be int or constant name)
+        is_constant_lower: True if lower bound is a named constant
+        is_constant_upper: True if upper bound is a named constant
+    """
+    base_type: str
+    lower_bound: Union[int, str]
+    upper_bound: Union[int, str]
+    is_constant_lower: bool
+    is_constant_upper: bool
+
+    def __str__(self) -> str:
+        return f"{self.base_type}({self.lower_bound}..{self.upper_bound})"
+    
+
+@dataclass
 class Variable:
     """Base class for all variable types.
     
     Attributes:
         name: Variable name
-        type: Variable type (BasicType, ArrayType, or StringType)
+        type: Variable type (BasicType, ArrayType, StringType, or RangeType)
         is_reference: True if variable is a REFERENCE TO
         redundancy_info: Redundancy annotation if present
         comment1: First comment line
@@ -88,7 +109,7 @@ class Variable:
         retain: True if variable has RETAIN keyword
     """
     name: str
-    type: Union[BasicType, ArrayType, StringType]
+    type: Union[BasicType, ArrayType, StringType, RangeType]
     is_reference: bool = False
     redundancy_info: Optional[str] = None
     comment1: Optional[str] = None
