@@ -319,7 +319,7 @@ class LibraryDeclarationToChm():
         <ul>
             """
         if has_functions_or_fbs:
-            """<li><a href="../FBKs/FBKs.html">Functions and Function Blocks</a></li>"""
+            html_content += """<li><a href="../FBKs/FBKs.html">Functions and Function Blocks</a></li>"""
         
         if has_datatypes:
             html_content += """
